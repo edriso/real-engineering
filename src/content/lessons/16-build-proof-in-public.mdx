@@ -1,0 +1,176 @@
+---
+title: Build proof in public
+summary: A resume makes claims. Public work shows proof. Make your skills easy to see for anyone who looks you up.
+part: career
+minutes: 9
+---
+
+Anyone can write "strong problem solver" on a resume. Few people can show it. When a hiring manager is choosing between two people with the same job title, they'll pick the one whose work they can actually see.
+
+This lesson is about leaving a trail of proof: projects, writing and contributions that show how you think and work. It's the same idea as the rest of this guide. Don't say it works. Show it.
+
+## What people check when they look you up
+
+Before or after a first interview, someone will probably search for you. They'll usually look at three places: your GitHub, your LinkedIn and anything you've written. Career guides on this topic mostly agree on what matters:
+
+- **A few strong projects beat many weak ones.** Reviewers tend to look at your top few pinned repositories, not all fifty.
+- **The README matters as much as the code.** It's the first thing they read.
+- **A live demo helps a lot.** A link they can click beats a setup guide they have to follow.
+- **Tutorial clones don't stand out.** Another to-do app or weather app shows you followed a video. It doesn't show judgment.
+- **The green squares don't matter much.** A busy contribution graph is easy to fake and says little about quality.
+
+You can read more in [this summary of what hiring managers look for on GitHub](https://underdog.io/blog/what-hiring-managers-look-for-on-github).
+
+## Your GitHub profile
+
+Treat your profile page like the front page of a small shop. Someone should understand what you do in ten seconds.
+
+**1. Write a profile README.** Create a repository with the same name as your username, and its README shows at the top of your profile. Keep it short:
+
+```md
+# Hi, I'm Sam
+
+I build web apps with React and Node, and I care about fast, accessible pages.
+
+- Now: building a budget tracker for small teams (link)
+- Recently: cut load time of my portfolio from 4.1s to 1.2s (write-up link)
+- Writing: short notes on bugs I fixed (link)
+- Contact: sam@example.com
+```
+
+**2. Pin three to six of your best repositories.** Pick the ones that show real problems solved, not the ones you spent the most hours on.
+
+**3. Give every pinned repo a good README.** It should answer:
+
+- What does this do, and who is it for? (one or two sentences)
+- A screenshot or a live link.
+- How to run it locally, in a few copy-paste steps.
+- What tech it uses and why you picked it.
+- What you'd do next, or what you learned.
+
+<Compare>
+<Before label="Says nothing">
+
+**my-app.** A React app. Run `npm install` then `npm start`.
+
+</Before>
+<After label="Shows proof">
+
+**Pantry.** Tracks what's in your kitchen and warns you three days before food expires. I built it because my family threw out too much food. Live demo linked at the top. React, IndexedDB, works offline. Tested on a 4G phone: first load under 2 seconds.
+
+</After>
+</Compare>
+
+## Build small, real projects
+
+The best portfolio projects solve a real problem for a real person, even if that person is you or your family. They don't need to be big. They need to be **finished, live and explained**.
+
+Good project ideas often start with an annoyance:
+
+- A tool that automates a boring task you do every week.
+- A small app for a local group, club or family member.
+- A browser extension that fixes something you dislike about a site you use.
+- A script that cleans up messy data you deal with at work or school.
+
+Then treat it like real work: tests, a CI check, a clear README and a deploy. A small project with good engineering habits says more about you than a big one that barely works.
+
+<Callout type="tip" title="Ship it, then improve it">
+A finished small project beats an unfinished big one every time. Put it live first. Then improve it in small, visible steps.
+</Callout>
+
+## Show your process, not just the result
+
+Companies don't just hire the result. They hire how you work. Your repositories can show that too:
+
+- **Commit messages** that say what changed and why.
+- **Issues** where you write down a bug or idea before you fix it.
+- **Pull requests** to your own projects, with a short description: what changed, why, how you checked it. See [git and pull requests](/lessons/git-and-pull-requests).
+- **A CI workflow** that runs your tests on every push.
+
+A hiring manager who opens one of your pull requests and sees a clear description and a test is learning how you'd behave on their team.
+
+## Write short posts
+
+You don't need to be a great writer or have a big audience. Short posts about real problems are enough. Some ideas:
+
+- "How I fixed a bug that only happened on Safari."
+- "What I learned moving my side project from X to Y."
+- "Three mistakes I made in my first code review."
+
+Keep each post short: the problem, what you tried, what worked, what you'd do differently. Post it on your own site, a dev blog platform or LinkedIn. Over a year, ten short posts become a public record of how you think. They also give interviewers things to ask you about, which means you get to talk about your best work.
+
+## Contribute to open source
+
+Open source contributions show something a solo project can't: that you can work in someone else's codebase, follow their rules and take feedback. You don't have to start with big features.
+
+1. **Pick a tool you already use.** You'll understand the problems it solves.
+2. **Start with docs.** Fix a confusing sentence, a broken example or a missing step. Maintainers like these and they're easy to get merged.
+3. **Then try small bugs.** Many projects label beginner-friendly issues as "good first issue."
+4. **Read the contributing guide first,** and follow it exactly.
+5. **Be patient and polite.** Maintainers are often volunteers.
+
+One merged pull request in a well-known project is a strong signal, because the maintainers reviewed it and decided it was good enough.
+
+## LinkedIn: say what you do and show proof
+
+Your headline is the first line people see. Most people waste it.
+
+<Compare>
+<Before label="Generic">
+
+"Passionate software engineer | Tech enthusiast | Lifelong learner"
+
+</Before>
+<After label="Specific">
+
+"Frontend engineer (React, TypeScript) · I build fast, accessible web apps · Cut page load 60% on my last project"
+
+</After>
+</Compare>
+
+In the About section, write a few plain sentences: what you build, what you're good at, and a link to your best project. Add your projects to the Featured section so they're one click away.
+
+## Keep a brag document
+
+You'll forget most of what you did by the time you need it: at review time, when updating your resume, or in an interview. Keep a running list. Julia Evans made this idea popular in her post [Get your work recognized: write a brag document](https://jvns.ca/blog/brag-documents/).
+
+Once a week, add a few lines:
+
+```md
+## Week of 2026-11-09
+
+- Fixed the slow search page: 3.2s to 0.4s by adding a database index.
+- Reviewed 6 pull requests; caught a bug that would have sent emails twice.
+- Wrote the setup guide; a new teammate got running in 20 minutes.
+```
+
+Write facts and numbers, not adjectives. Make your work sound exactly as good as it is, no more and no less. When it's time to update your resume, most of the work is already done. See [job search and interviews](/lessons/job-search-and-interviews) for how to turn these lines into resume bullets.
+
+<Drill id="career-proof-profile-readme" title="Write your profile README" time="30 min">
+
+Create or update your GitHub profile README. Include one line on what you do, what you're building now, one piece of proof with a number or a link, and how to contact you. Pin your three best repositories.
+
+</Drill>
+
+<Drill id="career-proof-fix-readme" title="Fix one project README" time="30 min">
+
+Pick your best project. Rewrite its README so a stranger understands it in ten seconds: what it does, who it's for, a screenshot or live link, and how to run it. If it isn't live yet, deploy it this week.
+
+</Drill>
+
+<Drill id="career-proof-brag-doc" title="Start a brag document" time="15 min, then 5 min weekly">
+
+Create a file called `brag.md`. Write down everything you did in the last month that you're proud of, with a number where you can. Set a weekly reminder to add to it.
+
+</Drill>
+
+<Takeaways>
+
+- A resume makes claims. Public work is proof.
+- Pin a few strong, finished, live projects with clear READMEs.
+- Show how you work: commits, issues, pull requests, CI.
+- Write short posts about real problems you solved.
+- Start open source with docs and small bugs.
+- Keep a brag document every week, with facts and numbers.
+
+</Takeaways>

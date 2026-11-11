@@ -1,0 +1,156 @@
+---
+title: Understand the problem first
+summary: Most wasted work comes from solving the wrong problem. Look at the real system, write the goal in two sentences, then ask one clear question.
+part: build
+minutes: 8
+---
+
+Imagine you spend three days building a perfect feature, and then someone says, "Oh, that's not what we meant." Almost every engineer has had this happen. It hurts, and it's mostly avoidable.
+
+The fix is simple, but it takes discipline: **understand the problem before you start building the solution.** This lesson shows you how.
+
+## Look at the real thing before you assume
+
+Tickets are written by busy people. They're often short, a bit wrong, or written in terms of a solution ("add a button that...") instead of a problem ("users can't find...").
+
+Before you write any code:
+
+- **Reproduce it.** If it's a bug, see it happen yourself.
+- **Look at the live system.** How does it work today? Which settings does it use? What do real users actually see?
+- **Read the code that's there.** Find where the behavior comes from. Don't guess from the file names.
+
+<Callout type="warn" title="Staging is not production">
+A test copy of a system can have different settings, data or versions. If the question is "how does it work for users," check where users are.
+</Callout>
+
+## Define the problem, then the solution
+
+Write the problem down before you think about how to fix it. A good way is the **two-sentence goal**:
+
+1. **What** should change, and for whom.
+2. **Why** it matters.
+
+<Compare>
+<Before label="Solution only">
+
+"Add a loading spinner to the search page."
+
+</Before>
+<After label="Problem and why">
+
+"Users think search is broken because nothing happens for two seconds after they type. We want them to see that results are coming, so they don't leave the page."
+
+</After>
+</Compare>
+
+The second version opens better options. Maybe a spinner is right. Maybe search should just be faster. Maybe showing old results while new ones load is better. You can't see those options if you start from "add a spinner."
+
+If you can't write the two sentences, you don't understand the task yet. That's fine. It just means your next step is to ask, not to code.
+
+## Check whether a tool already solves it
+
+Before you build something, spend ten minutes looking for what already exists:
+
+- Does the codebase already have a helper for this? Search for it.
+- Does your framework or platform have a built-in feature?
+- Is there a well-known library that's used and maintained?
+
+```bash
+# Before writing a new date formatter, check for an existing one
+git grep -nE "formatDate|toLocaleDateString" src/
+```
+
+A second copy of something that already exists is not just wasted time. Later the two copies drift apart and disagree, and then you have a bug.
+
+## Watch out for the XY problem
+
+The XY problem goes like this: someone wants to do **X**. They decide **Y** is the way to do it. Y is hard, so they ask for help with Y, and never mention X.
+
+> "How do I get the last three characters of a file name?"
+>
+> (What they actually want: the file's type. And the file type isn't always three characters long, like `.jpeg` or `.md`.)
+
+You'll see the XY problem in tickets, in questions from teammates, and in your own head. When something feels oddly hard, step back and ask: **what am I really trying to do?**
+
+When others ask you for help, gently ask about X: "Sure. What are you trying to do in the end?" It often saves both of you an hour.
+
+## Ask one specific question
+
+Asking questions is not weakness. Asking **vague** questions too early, or asking nothing for two days, is the problem.
+
+A good question comes after a short investigation and has three parts:
+
+1. What you're trying to do.
+2. What you found or tried.
+3. The one specific thing you need.
+
+<Compare>
+<Before label="Hard to answer">
+
+"Hey, do you have a minute? I have a question about the invoices."
+
+</Before>
+<After label="Easy to answer">
+
+"I'm adding a tax line to invoices. The total comes from `calcTotal()`, but the PDF uses its own math in `renderInvoice()`. Should the PDF read the total from `calcTotal()` instead, or is there a reason it's separate?"
+
+</After>
+</Compare>
+
+The second question can be answered in one line. It also shows you looked into it first.
+
+Two more habits:
+
+- **Don't ask to ask.** Skip "Can I ask a question?" Just ask it.
+- **Ask the question in a shared place** when it's not private. Then the answer helps the next person too.
+
+## A rough question at 15 minutes beats a perfect one at 5 pm
+
+There's a balance. Don't ask before you've looked at all. But don't spend a whole day stuck either.
+
+A simple rule many teams use: **if you've been stuck for about 15 to 30 minutes and you're not making progress, ask.** Your question can be rough. "I'm stuck on X, I've tried A and B, any ideas?" is fine.
+
+The cost of asking is a few minutes of someone else's time. The cost of not asking can be days of yours.
+
+<Callout type="tip" title="Write it down as you go">
+Keep a scratch file while you investigate: what you checked, what you found, what you ruled out. When you ask for help, paste the useful part. When you write the PR, half of it is already written.
+</Callout>
+
+## Know when you're ready to start
+
+You're ready to build when you can answer these questions:
+
+- What's the goal, in two sentences?
+- How will I know it worked? (What will I check, and where?)
+- What's out of scope?
+- Is there anything that already does part of this?
+
+If one answer is missing, spend a few more minutes before you code. Those minutes are the cheapest part of the whole task.
+
+<Drill id="build-two-sentence-goal" title="Rewrite three tickets as two-sentence goals" time="20 min">
+
+Take three tickets or tasks from your current work or a side project. Rewrite each as two sentences: what changes and for whom, then why it matters. If you can't, write down the question you'd need to ask to find out.
+
+</Drill>
+
+<Drill id="build-existing-tool" title="Search before you build" time="15 min">
+
+Next time you're about to write a helper or a component, stop. Spend ten minutes searching the codebase and the docs for something that already does it. Write down what you found, even if it's "nothing."
+
+</Drill>
+
+<Drill id="build-good-question" title="Ask one great question" time="10 min">
+
+The next time you're stuck, write your question with three parts: what you want, what you tried, the one thing you need. Read it once and cut any word that doesn't help. Then send it in a shared channel.
+
+</Drill>
+
+<Takeaways>
+
+- Look at the real system and read the real code before you assume anything.
+- Write the goal in two sentences: what changes, and why.
+- Search for an existing tool or helper before you build a new one.
+- When something feels oddly hard, ask what you're really trying to do.
+- Ask one specific question after a short investigation. Don't wait all day.
+
+</Takeaways>

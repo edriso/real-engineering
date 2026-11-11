@@ -1,0 +1,134 @@
+---
+title: Decide with less than perfect information
+summary: You will never have all the facts. Learn to weigh cost and payoff, decide, and measure instead of arguing.
+part: ship
+minutes: 9
+---
+
+Engineers make dozens of decisions a day. Which approach? Ship now or wait? Fix this or that first? You'll almost never have all the information you want. The engineers who move teams forward don't wait for certainty. They make a good decision with what they have, then check if it worked.
+
+## Fear of being wrong usually costs more than being wrong
+
+Waiting feels safe. It isn't. While you wait for more information, the bug stays live, the feature stays unfinished and the team stays blocked. Most decisions in software can be changed later, so being wrong often costs little. Being slow always costs something.
+
+## A quick way to weigh a decision
+
+You can think about any decision with three numbers:
+
+- **Payoff**: what you gain if it works, after you take away the cost of trying.
+- **Cost**: what you lose if it doesn't.
+- **Success rate**: how likely you think it is to work.
+
+From the cost and payoff you get the **break-even rate**: how often you need to be right for the decision to be worth it.
+
+```text
+break-even rate = cost / (cost + payoff)
+```
+
+Here's a worked example. You think a caching change could speed up a slow page. Trying it costs about 1 day. If it works, it saves the team about 5 days of support work this quarter. Take away the day you spent, and the payoff is 4 days.
+
+```text
+break-even = 1 / (1 + 4) = 0.2, which is 20%
+```
+
+So you only need it to work 1 time in 5 for trying to be the right call. If you think there's even a 40% chance it works, try it. Don't spend a week debating it.
+
+The same math tells you when to be careful. If a database migration saves 1 day but could cost 10 days if it goes wrong, the break-even rate is 10 / 11, about 91%. You'd need to be very sure. That's a one-way door, and it deserves the slow lane from [Ship safely](/lessons/ship-safely).
+
+## Score the decision, not the outcome
+
+Sometimes a good decision turns out badly because of something nobody could have known. Sometimes a bad decision works out by luck. If you judge only by outcomes, you'll learn the wrong lessons.
+
+After something goes wrong, ask: "With what we knew then, was it a reasonable call?" If yes, the decision was fine. Improve what you know next time, not how scared you are.
+
+## The 70% rule
+
+Some leaders use a simple guide: decide when you have about 70% of the information you wish you had. Waiting for 90% often means you're too slow. This works when you're good at noticing mistakes and fixing them quickly, which is exactly what the habits in this guide build.
+
+## Roll forward or hold?
+
+When a release has a small problem, you have two choices: hold everything until it's perfect, or keep going and fix the problem in the next change. Holding blocks all the value of the release. A small follow-up fix often costs a fraction of that.
+
+A useful test is the **reversal test**: imagine the new version was already live. Would you roll back to the old one because of this problem? If not, don't hold the release for it.
+
+Of course, if the problem is serious (wrong charges, lost data, a security hole), roll back first and think later.
+
+## "Can you be sure?" is a request for time
+
+When someone asks for more certainty before a decision, they're really asking for more time and effort. That might be worth it, or not. Before you go and gather more facts, ask two questions:
+
+1. **Would any answer change the decision?** If you'd do the same thing either way, skip the research.
+2. **What result would make us choose A, and what would make us choose B?** Write that down first. Then you can't move the goal after you see the data.
+
+## Measure, don't argue
+
+When two people disagree about which approach is better, don't hold a meeting. Run both and post the numbers.
+
+<Compare>
+<Before label="Arguing">
+
+"I really think option B will be faster. I've seen this pattern work before."
+"I don't know, option A seems cleaner to me."
+(Three days later, still discussing.)
+
+</Before>
+<After label="Measuring">
+
+"I tried both on the product page, 5 runs each on a mid-range phone. Both fix the layout jump. Option B loads the main image about 300 ms faster in every run. Numbers are in the PR. Your call which one we keep."
+
+</After>
+</Compare>
+
+Notice the last line. After measuring, the engineer hands the decision back to the owner. Data ends the argument. It doesn't mean you get to take over the decision.
+
+## Use real data to judge, test data to debug
+
+Lab tests on your own fast laptop are great for finding and fixing problems. But to judge if something really helped, look at data from real users. Real users have slow phones, bad networks and old browsers.
+
+Real data can also surprise you. One team made a page much smaller, and the average load time went **up**. Why? Users on slow connections who used to give up could now load the page, so they finally showed up in the numbers. The change was a success. The average just hid it.
+
+<Callout type="warn" title="Too good to be true">
+If a result looks spectacular, check it before you celebrate. A 10x speedup is often a bug in the measurement (a cache, a missing step, a test that didn't run), not a real breakthrough. Try to break your own result first.
+</Callout>
+
+## Too much at once makes everything slow
+
+This one surprises people. There's a simple rule called Little's law:
+
+```text
+time to finish one task = tasks in progress / tasks finished per week
+```
+
+If your team has 10 tasks in progress and finishes 2 a week, each task takes about 5 weeks. Finish the same 2 a week but keep only 4 in progress, and each task takes 2 weeks. Nobody worked harder. You just started fewer things.
+
+The same idea applies to people. A simple model from queueing theory (the math of waiting lines) says that when someone is 80% busy, new work waits about 4 times as long as the work itself takes. At 95% busy, it waits about 19 times as long. Real teams are messier than the model, but the point holds: a team with no spare time can't respond to anything quickly.
+
+So: **finish things before starting new ones.** And leave some slack in your week.
+
+<Drill id="ship-decide-break-even" title="Do the break-even math" time="15 min">
+
+Pick a decision you're putting off. Estimate the cost if it fails and the payoff if it works, in hours or days. Work out the break-even rate. Then honestly guess the success rate. If your guess is above the break-even rate, make the decision today.
+
+</Drill>
+
+<Drill id="ship-decide-measure-both" title="Measure instead of debating" time="1 hour">
+
+Next time you and someone else disagree on an approach, build the smallest version of both and measure one number that matters (speed, size, errors). Post the numbers in two or three lines and let the owner choose.
+
+</Drill>
+
+<Drill id="ship-decide-limit-wip" title="Limit your work in progress" time="5 min, then a week">
+
+Count how many tasks you have started but not finished. Pick a limit (for example, 3). For one week, don't start anything new until you're under the limit. Notice how much faster things get done.
+
+</Drill>
+
+<Takeaways>
+
+- Waiting has a cost. Most decisions can be changed later.
+- Break-even rate = cost / (cost + payoff). Often you only need to be right a small part of the time.
+- Judge decisions by what you knew then, not by luck.
+- Measure both options and post the numbers. Then let the owner decide.
+- Doubt spectacular results. Finish work before starting new work.
+
+</Takeaways>

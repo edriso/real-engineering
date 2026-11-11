@@ -1,0 +1,151 @@
+---
+title: Work with AI agents
+summary: AI can write a lot of your code. You are still the author of everything you ship, so learn to steer it and check it.
+part: ai
+minutes: 9
+---
+
+AI coding agents can read a codebase, run commands and write a working feature in minutes. That's a real change in how we work. It also creates a new trap: shipping code you didn't read, can't explain and never checked.
+
+The rule for this whole lesson is simple. **You are the author of what you ship.** If the agent wrote a bug and you merged it, you wrote the bug. Nobody will ask which tool typed the line. They'll ask why you approved it.
+
+## Three things to change, cheapest first
+
+When an AI tool gives you bad results, there are three things you can change:
+
+1. **The prompt.** What you ask and how you ask it. A change takes minutes, costs nothing and is easy to undo.
+2. **The harness.** The tools, files, docs and checks around the model: what it can read, what it can run, which rules apply. A change takes hours.
+3. **The model.** Switching models, or training your own. This takes days or weeks and affects everyone.
+
+Most people jump to "the model isn't smart enough." Most of the time, it's a prompt problem or a harness problem. Before you blame the model, ask: would a careful person with two hours to fix the prompt and the setup get a good answer? Usually yes.
+
+<Callout type="tip" title="The model doesn't know your docs">
+If the agent keeps getting your project's rules wrong, that usually means it never saw them. Give it the doc, or a tool that can find the doc. Training a model changes how it behaves, not what it knows about your project.
+</Callout>
+
+## Describe the finished thing
+
+Weak prompts ask a question and wait. Strong prompts describe the result you want. A simple formula is three sentences:
+
+- **End result:** what should exist when it's done.
+- **Constraint:** what it must or must not do.
+- **Quality bar:** how you'll judge it.
+
+<Compare>
+<Before label="Vague">
+
+"How should I add pagination to the users page?"
+
+</Before>
+<After label="Clear">
+
+"Add pagination to the users page: 25 users per page, with Next and Previous buttons. Use the existing `fetchUsers` function and don't change the API. It's done when the page loads in under a second with 10,000 users and the existing tests still pass."
+
+</After>
+</Compare>
+
+The clear version saves you about ten rounds of back and forth. It also gives the agent a way to check its own work.
+
+A few more prompt moves that cost nothing:
+
+- **Name the output's shape.** "Three bullets, each under 12 words."
+- **Show an example** instead of describing a rule.
+- **Attach the source, don't paraphrase it.** If you find yourself typing "there's a doc that says...", attach the doc.
+- **Ask it to say "unsure"** when it doesn't know, instead of guessing.
+
+## The context window matters most
+
+The agent only knows what's in its context: your messages, the files it read, the output of the commands it ran. That's all. Better context gives better results.
+
+Context also wears out. In a long chat, the model can lose track of things from the middle. This is sometimes called **context rot**. Some habits help:
+
+- **Put long-running work in files, not in chat.** A plan in `PLAN.md` doesn't get forgotten. Chat history does.
+- **Start fresh when the task ends.** A new task deserves a clean context.
+- **Summarize and continue** when the same task has a heavy history.
+- **Commit often.** Git is your real history. An undo button inside a tool is not.
+
+## Keep the instructions file small
+
+Most agents read a project file at the start of each session, often called `AGENTS.md` or `CLAUDE.md`. It's tempting to write everything in there. Don't.
+
+A good instructions file is short (a few hundred lines at most) and works like a map. It states the facts the agent can't learn from the code, and it points to other docs: "read `docs/testing.md` before writing tests."
+
+```md
+# AGENTS.md
+
+- Run `npm run check` before you say a change is done.
+- Money values are integers in cents. Never use floats for money.
+- Never write to the production database. Use `scripts/seed.ts` for local data.
+- Read docs/architecture.md before adding a new module.
+```
+
+Add a line only when you keep correcting the same mistake. Delete lines that are out of date. If you find yourself writing a rule in ALL CAPS, that rule probably belongs in an automated check, not in prose. You can read more about this in [specs, skills and evals](/lessons/specs-skills-and-evals).
+
+## The agent's word is not evidence
+
+Agents sound confident whether they're right or wrong. "All tests pass" might mean the tests passed. It might also mean the agent ran the wrong command, or wrote tests that can't fail.
+
+Treat every claim as something to check:
+
+- "Tests pass." Run them yourself, or read the output.
+- "This bug is fixed." Reproduce the bug, then try it again with the fix.
+- "This is a blocking issue." Check whether it can happen with real data.
+
+<Callout type="warn" title="Don't just pass messages">
+If someone asks a question about your pull request and you have to ask the AI to answer it, you didn't really review your own code. A good test: can you explain every line of your diff without help? If not, you're not ready to ask anyone else to review it.
+</Callout>
+
+**The agent that wrote the code shouldn't be the one that approves it.** If you use AI to review, use a fresh session with a different job, like "find bugs" or "check this against our rules." Then check its findings too. Many AI review comments aren't worth posting. Keep the ones that are real and write them in your own words.
+
+## Running agents side by side
+
+You can run several agents at once, each on its own task. When you do this, you become a manager of agents, not just a writer of prompts.
+
+- **Give each agent its own copy of the code.** A git worktree or a separate clone works well. If two agents edit the same folder, the last one to save wins and you lose work.
+- **Ask for short summaries back,** not full logs. You review the result, then the code.
+- **Keep the tasks independent.** If task B needs the output of task A, run them in order.
+
+## Don't use AI where plain code works
+
+AI is slow, costs money and can give a different answer each time. A regular expression, a lookup table or a ten-line function is fast, free and always gives the same answer.
+
+```ts
+// No model needed: this is a rule, not a judgment.
+const isValidPostcode = (value: string) => /^\d{5}$/.test(value);
+```
+
+Use AI for judgment: reading messy text, drafting, summarizing, exploring a new codebase. Use code for rules.
+
+<Quote by="Dex Horthy">
+Do not outsource the thinking.
+</Quote>
+
+The agent can do the typing. You still decide what to build, why, and whether it's right. That judgment gets better each time you use it, and it's the part companies are paying for.
+
+<Drill id="ai-agents-rewrite-prompt" title="Rewrite a prompt with the three-sentence formula" time="15 min">
+
+Find a prompt you used this week that took many rounds to get right. Rewrite it as end result, constraint and quality bar. Run the new version in a fresh session and compare how many rounds it took.
+
+</Drill>
+
+<Drill id="ai-agents-explain-diff" title="Explain your last AI-assisted diff" time="20 min">
+
+Open the last change you made with an AI agent. Without asking the AI, write one sentence for each file explaining what changed and why. Mark any line you can't explain, then go and understand it.
+
+</Drill>
+
+<Drill id="ai-agents-verify-claims" title="Check three claims" time="20 min">
+
+In your next agent session, write down three things the agent says are true ("tests pass", "this is unused", "this is fixed"). Check each one yourself. Note how many held up.
+
+</Drill>
+
+<Takeaways>
+
+- You're the author of everything you ship, no matter who typed it.
+- Fix the prompt first, then the harness, and only then think about the model.
+- Describe the finished thing: end result, constraint, quality bar.
+- Keep long work in files and keep the instructions file small.
+- An agent's claim is not evidence. Check it, and never approve code you can't explain.
+
+</Takeaways>

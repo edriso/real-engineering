@@ -1,0 +1,166 @@
+---
+title: Small, safe changes
+summary: Small changes are easier to review, easier to test and easier to undo. Learn to split work, keep production steady, and leave no leftovers.
+part: build
+minutes: 9
+---
+
+Here's something experienced engineers know: **the size of a change matters more than how clever it is.** A small change gets a careful review. A huge change gets a tired "looks good to me." Small changes break less, and when they do break, you can find the problem and undo it in minutes.
+
+This lesson shows you how to make changes small and safe without slowing down.
+
+## One concern per pull request
+
+A pull request (PR) should do **one thing**. Fix one bug, or add one feature, or refactor one area. Not all three.
+
+Why? Because when you mix things:
+
+- The reviewer has to understand all of them at once, so they miss problems.
+- If one part breaks, you can't undo it without undoing the others.
+- The history becomes confusing. Six months later, nobody knows why a line changed.
+
+<Compare>
+<Before label="Three things in one">
+
+**PR: Fix login bug**
+
+- Fixes the login redirect
+- Renames all `user_id` variables to `userId`
+- Updates the CI config to Node 24
+
+</Before>
+<After label="Three small PRs">
+
+1. **Fix login redirect after password reset** (12 lines)
+2. **Rename user_id to userId in auth module** (80 lines, no behavior change)
+3. **Run CI on Node 24** (3 lines)
+
+</After>
+</Compare>
+
+Each small PR can be reviewed in minutes, merged on its own, and undone on its own.
+
+## Aim for 200 to 400 lines
+
+Many teams find that reviewers catch the most problems when a change is about **200 to 400 lines**. Smaller is fine too. Much bigger, and the review usually gets worse fast.
+
+There's a funny pattern here. Show someone 20 lines and they'll ask, "Is this correct?" Show them 2,000 lines and they'll ask, "Do I trust this person?" You want the first kind of review.
+
+If your change is big, split it into steps that can each land on their own:
+
+1. Add the new code, unused.
+2. Switch callers over, a few at a time.
+3. Remove the old code.
+
+Each step is safe, and each one can be rolled back alone.
+
+## Make the change easy, then make the easy change
+
+This idea comes from Kent Beck. Often a feature is hard because the code isn't shaped for it yet. So do it in two moves:
+
+1. **First PR:** reshape the code so the feature will be easy. No behavior change. Tests stay green.
+2. **Second PR:** add the feature. Now it's a small, obvious change.
+
+```ts
+// Step 1: pull the price logic into one function (no behavior change)
+export function lineTotal(price: number, qty: number) {
+  return price * qty;
+}
+
+// Step 2 (the next PR): the same function, now with the new rule
+export function lineTotal(price: number, qty: number, discount = 0) {
+  return price * qty * (1 - discount);
+}
+```
+
+The reviewer of step 1 only has to check "nothing changed." The reviewer of step 2 only has to check the new rule. Both are easy questions.
+
+## New settings should match what's live today
+
+When you add a setting, an option or a flag, its **default** matters a lot. If the default changes how things look or work, your "harmless" new setting has just changed production for every user.
+
+The rule: **a new setting's default should keep production exactly as it is today.** Turn on the new behavior on purpose, later, in one place first.
+
+<Callout type="warn" title="Check the real saved values">
+Don't only look at the code's default. Look at what's actually saved and used in production. If the live system has a different value saved, your "safe" default might not be what users see.
+</Callout>
+
+The same goes for data. If your new code reads a new field, fill that field in **before** you deploy the code that reads it. Otherwise the code reads empty values. In a shop, an empty price field can mean charging zero.
+
+## Fix every copy of the bug
+
+You find a bug in the desktop menu and fix it. Nice. But the mobile menu has a copy of the same code, and it's still broken. A reviewer will catch this, or worse, a user will.
+
+When you fix a bug, search for its twins:
+
+```bash
+# Find every place with the same pattern
+git grep -n "href=\"\"" -- '*.html' '*.tsx'
+```
+
+Then either fix all of them, or remove the duplication so there's only one place to fix. If you really can't fix them all now, open a ticket for the rest and link it in the PR.
+
+## Clean up after yourself
+
+When you change code, some things become leftovers:
+
+- A helper that no longer has any callers.
+- A setting nobody reads anymore.
+- A comment that describes the old behavior.
+- A test for a feature that's gone.
+
+Delete them in the same PR. Leftovers confuse the next person, who will spend time wondering if they still matter. A comment that describes code that's no longer there is worse than no comment.
+
+## Don't change someone else's decision on the side
+
+Sometimes, while working on your task, you'll see a decision you disagree with. Maybe a library choice, a naming style or a setting.
+
+Don't quietly change it inside your unrelated PR. That decision had an owner and probably a reason. Instead:
+
+- Ask the owner why it's that way.
+- If you still think it should change, open a separate ticket or PR with your reasoning.
+
+This keeps your PR focused and keeps trust in the team.
+
+## Small changes are faster, not slower
+
+People sometimes worry that small PRs slow them down. It's the other way around. Small PRs:
+
+- Get reviewed in hours, not days.
+- Rarely need big rewrites after review.
+- Rarely break production, and are easy to undo when they do.
+
+The total time from "start" to "working for users" is almost always shorter.
+
+<Callout type="tip" title="A quick size check">
+Before you open a PR, try to describe it in one sentence without the word "and." If you can't, it might be two PRs.
+</Callout>
+
+<Drill id="build-split-pr" title="Split a big change" time="30 min">
+
+Look at the biggest PR you've opened recently (or a big commit in an open-source project). Write down how you'd split it into 3 to 5 smaller PRs that each work on their own. For each one, write its one-sentence title.
+
+</Drill>
+
+<Drill id="build-find-twins" title="Hunt for twins" time="20 min">
+
+Pick the last bug you fixed. Search the codebase for the same pattern with `git grep`. Did a copy of the bug exist somewhere else? If yes, fix it or open a ticket.
+
+</Drill>
+
+<Drill id="build-leftovers" title="Leftover sweep" time="20 min">
+
+In a project you know, find one unused function, setting or outdated comment. Prove it's unused (search for callers), then remove it in a tiny PR of its own.
+
+</Drill>
+
+<Takeaways>
+
+- One concern per PR. If the title needs "and," it might be two PRs.
+- Aim for 200 to 400 lines. Split big work into steps that each land alone.
+- Reshape the code first, then add the feature as a small change.
+- New defaults must keep production exactly as it is today.
+- Fix every copy of a bug, not just the one you saw.
+- Delete leftovers, and don't change other people's decisions on the side.
+
+</Takeaways>

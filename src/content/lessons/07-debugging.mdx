@@ -1,0 +1,164 @@
+---
+title: Debug like a scientist
+summary: Good debugging is not guessing. Reproduce the bug, read the error, narrow it down, find the root cause, and leave a test behind.
+part: build
+minutes: 9
+---
+
+When something breaks, many people start changing things at random. They add a `console.log` here, restart something there, try a fix they saw online. Sometimes it works. Often it makes things more confusing.
+
+Good debugging is closer to science. You make a guess, you test it, and you narrow things down step by step. It's calmer, and it's usually faster.
+
+## Step 1: Reproduce it
+
+You can't fix what you can't see. Before anything else, make the bug happen yourself.
+
+Write down the exact steps:
+
+1. Open the cart page on a phone-sized screen.
+2. Add two items.
+3. Change the quantity of the first item to 3.
+4. The total shows the old amount.
+
+If you can't reproduce it, collect more facts: which browser, which account, what time, what data. A bug that "sometimes" happens usually depends on something you haven't noticed yet, like timing, a specific user, or a cached value.
+
+<Callout type="tip" title="Make it smaller">
+Once you can reproduce it, try to make the steps shorter. The smallest case that still shows the bug is the easiest one to fix.
+</Callout>
+
+## Step 2: Read the error, all of it
+
+This sounds obvious, but many people read only the first line of an error. Read the whole thing:
+
+- **The message:** what went wrong.
+- **The stack trace:** where it happened. Find the first line that's in **your** code, not a library.
+- **The values:** what was `undefined`? What was the status code?
+
+```text
+TypeError: Cannot read properties of undefined (reading 'price')
+    at lineTotal (src/cart/total.ts:14:22)
+    at CartSummary (src/cart/CartSummary.tsx:31:18)
+```
+
+This tells you a lot. At line 14 of `total.ts`, inside `lineTotal`, the code tried to read `price` from something that was `undefined`. The call came from `CartSummary` on line 31. Start there.
+
+## Step 3: Code, data or environment?
+
+Before you dig into the code, ask which of these three is the likely cause:
+
+- **Code:** the logic is wrong.
+- **Data:** the code is fine, but the input is unusual. An empty field, a missing image, a strange character.
+- **Environment:** the config, the version, the network, or a third-party service is different or down.
+
+A quick check often answers this. Does the bug happen for every product, or only one? (If one, it's probably data.) Does it happen on your machine and in production? (If only in production, look at the environment.)
+
+<Callout type="warn" title="When a number suddenly doubles">
+If a count, a bill or a run time suddenly doubles, check the environment first. Did something run twice? Is there a second copy of the data, or a stray copy of the project being scanned? These cause it more often than you'd think.
+</Callout>
+
+## Step 4: Narrow it down
+
+Now find **where** it goes wrong. The goal is to cut the search space in half again and again.
+
+- **Check in the middle.** Log or inspect the value halfway through the flow. Is it right there? Then the bug is after that point. If not, it's before.
+- **Change one thing at a time.** If you change three things and the bug goes away, you don't know which one fixed it, or if one of them broke something else.
+
+### Use git bisect when you know it used to work
+
+If the bug is new, `git bisect` can find the exact commit that caused it. It does a binary search through your history. Even with 1,000 commits, it takes about 10 steps.
+
+```bash
+git bisect start
+git bisect bad                 # the current version has the bug
+git bisect good v2.3.0         # this older version was fine
+
+# Git checks out a commit in the middle. Test it, then tell git:
+git bisect good    # or: git bisect bad
+
+# Repeat until git prints "<sha> is the first bad commit"
+git bisect reset   # go back to where you started
+```
+
+If you have a script that can check the bug automatically, git can do the whole search for you with `git bisect run ./check-bug.sh`.
+
+## Step 5: Find the root cause, in one sentence
+
+A fix that makes the symptom go away isn't always a fix. Keep asking "why?" until you find the real cause. Then write it in **one sentence**.
+
+<Compare>
+<Before label="Symptom only">
+
+"Fixed the cart total. Added a check so it doesn't crash."
+
+</Before>
+<After label="Root cause">
+
+"The cart total crashed because removed products stay in old carts with no price. Now we skip lines whose product is gone, and the cart shows a 'no longer available' note."
+
+</After>
+</Compare>
+
+If you can't write that one sentence, you probably haven't found the root cause yet. Adding an `if (x)` check to stop a crash without knowing why `x` was missing often hides the bug and moves it somewhere harder to see.
+
+## A classic: the slow answer that arrives last
+
+Here's a bug that confuses many people. A user types in a search box. Each key press sends a request. The request for "sho" is slow. The request for "shoes" is fast. So the answers arrive in the wrong order, and the page shows results for "sho" even though the box says "shoes."
+
+Nothing throws an error. It only happens sometimes. That's a **race condition**.
+
+One simple fix is to number each request and ignore any answer that isn't the newest:
+
+```ts
+let latest = 0;
+
+async function search(query: string) {
+  const id = ++latest;
+  const results = await fetchResults(query);
+  if (id !== latest) return; // a newer search started, drop this answer
+  showResults(results);
+}
+```
+
+When a bug "only happens sometimes," think about timing: two things racing, a double click, a slow network, or something that changes while you wait.
+
+## Step 6: Leave a test behind
+
+When you've fixed the bug, write a test that would have caught it. Check that it fails without your fix (see [tests that prove something](/lessons/tests-that-prove-something)). Now this bug can never quietly come back.
+
+Also ask: **does this bug exist anywhere else?** Search for the same pattern in other places, and fix those too.
+
+## Keep notes while you debug
+
+Keep a small file open while you work. Write down what you tried and what you saw. It helps in three ways:
+
+- You won't test the same idea twice.
+- If you need help, you can share exactly what you've ruled out.
+- When you write the PR or the incident note, it's already half written.
+
+<Drill id="build-bisect" title="Try git bisect once" time="30 min">
+
+In any repo with some history, pick a small change you can see (a text, a color, a function's output). Pretend it's a bug and use `git bisect` to find the commit that introduced it. Doing it once on purpose makes it easy to use when it matters.
+
+</Drill>
+
+<Drill id="build-root-cause" title="One-sentence root cause" time="15 min">
+
+Look at the last three bugs you fixed, or three closed bugs in an open-source project. For each, write the root cause in one sentence. If you can't, note what you'd need to find out.
+
+</Drill>
+
+<Drill id="build-race" title="Find a race" time="30 min">
+
+Find a search box, filter or autosave in a project you have. Use your browser's dev tools to slow the network (pick a slow preset like "3G"), then type fast or click twice. Does anything show the wrong result? If yes, fix it with the "latest request wins" idea.
+
+</Drill>
+
+<Takeaways>
+
+- Reproduce the bug first, then make the steps as short as you can.
+- Read the whole error, and find the first line in your own code.
+- Ask if it's the code, the data or the environment. Check the environment when numbers double.
+- Narrow it down by halves, and change one thing at a time. Use `git bisect` for new bugs.
+- Write the root cause in one sentence. Then leave a test behind.
+
+</Takeaways>

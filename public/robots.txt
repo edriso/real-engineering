@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://edriso.github.io/real-engineering/sitemap.xml

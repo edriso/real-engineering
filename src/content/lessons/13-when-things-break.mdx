@@ -1,0 +1,156 @@
+---
+title: When things break
+summary: Every system breaks sometimes. Stay calm, stop the damage, keep people informed, and learn so it never breaks the same way twice.
+part: ship
+minutes: 9
+---
+
+Sooner or later, something you built will break in production. That's normal. What people remember isn't that it broke. They remember how you handled it. Calm, clear handling during an incident is one of the fastest ways to earn trust on a team.
+
+## Step 1: Stay calm
+
+Panic makes you skip steps, guess and make it worse. Take a breath. The problem already happened, and a few seconds to think won't make it bigger.
+
+Write down what you know, even if it's just two lines:
+
+```text
+14:05 Reports of checkout errors from 3 customers.
+14:07 Error rate on /checkout jumped from 0.1% to 12% at 13:58.
+```
+
+Notes like these help you think, help others join in, and become the timeline later.
+
+## Step 2: Stop the damage first
+
+Your first job isn't to find the root cause. It's to stop the damage. Ask: what's the fastest safe way to make users OK again?
+
+- Turn off the feature flag.
+- Roll back the last deploy.
+- Pause the job that's sending bad emails.
+
+Fix it properly later. A rollback that takes two minutes beats a perfect fix that takes two hours while customers keep failing.
+
+<Callout type="tip" title="Know your off switch before you need it">
+For every risky change, know how to turn it off before you ship. If you have to figure out the rollback during an incident, you'll be slow. See [Ship safely](/lessons/ship-safely).
+</Callout>
+
+## Step 3: Tell people, early and often
+
+Silence during an incident is scary for everyone else. Post a short update as soon as you know something is wrong, even if you don't know why yet. Then update on a regular rhythm, for example every 30 minutes, even if the update is "still looking".
+
+```text
+Checkout errors since 13:58, about 12% of orders failing.
+Rolled back today's deploy at 14:12, errors back to normal.
+Still finding the cause. Next update 14:45.
+```
+
+Each update says what's happening, what you did and when the next update comes.
+
+## Know which way a failure points
+
+Not every failure is equally bad. Ask which direction the error goes and who it hurts.
+
+<Compare>
+<Before label="Safer failure">
+
+A price is missing, so the item shows "unavailable" or the customer is charged less. The business loses a little money. Annoying, but customers are fine.
+
+</Before>
+<After label="Dangerous failure">
+
+An old price is used after a price drop, so the customer pays **more** than the price they saw. That breaks trust, and it can create legal problems.
+
+</After>
+</Compare>
+
+When you design a system, make it fail in the safe direction. When you write tests, write extra ones for the dangerous direction. During an incident, the dangerous direction gets fixed first.
+
+## Close false alarms cleanly
+
+Sometimes the alarm is the thing that's broken. A monitoring job fails because an external service had a short outage, but the real work finished fine. When that happens, say so clearly and close it:
+
+```text
+The import itself succeeded (all 720 rows in, checked the count).
+The watchdog failed because the API returned a 502 for one minute.
+Nothing to fix on our side, nothing needs a re-run.
+```
+
+That message separates "our system broke" from "the alarm went off". People can stop worrying.
+
+## Separate code problems from data problems
+
+As in [Own the outcome](/lessons/own-the-outcome), many incidents turn out to be data, not code. Nine products have no image because the source file has no image for them. The code did exactly what it should. Before you change code, check whether the input was the problem. Then say which one it was.
+
+## Know when to stop
+
+Once the damage has stopped and users are OK, the rest can often wait. You don't need to find the root cause at 2 a.m. Write down what you know, what you've tried and what's next, hand it off or leave it for the morning, and go to sleep. A tired engineer makes risky changes.
+
+## The postmortem: learn, don't blame
+
+After the incident, write a short postmortem. It's **blameless**: it's about how the system allowed the mistake, not who made it. People make mistakes. Systems should catch them.
+
+```markdown
+## What happened
+Checkout failed for about 12% of orders for 14 minutes.
+
+## Impact
+About 40 customers saw an error. 31 retried and succeeded. No double charges.
+
+## Timeline
+13:58 Deploy goes live
+14:05 First customer reports
+14:12 Rolled back, errors stop
+
+## Root cause
+A new field was read before it was filled for older products,
+so those products had no price.
+
+## What we'll change
+- Backfill fields before deploying code that reads them (owner: Ana, by Nov 20)
+- Add a test with an old product that has no new field (owner: Lee, by Nov 18)
+- Alert on checkout error rate above 2% (owner: Ana, by Nov 20)
+```
+
+Every action item has an owner and a date. Without those, they won't happen.
+
+## Every incident becomes a test
+
+The best thing a postmortem can produce is a new test (or an eval case, if the bug was in an AI feature). If the same thing tries to break again, the test catches it before users do. Over time, your test suite becomes a record of every way your system has failed, and a wall that stops each one from coming back.
+
+## Alerts people trust
+
+Good alerts get you to incidents early. Bad alerts teach everyone to ignore them.
+
+- **A check that's always red is worse than no check.** If an alert fires every day "and that's normal", people stop looking. Then they miss the real one. Fix it or delete it.
+- **Every sentence in an alert must be true and provable.** "Payment service is down" should only fire when it really is down. If the alert can't be sure, say what it does know: "Payment check failed 3 times in 5 minutes."
+- **Alert on what users feel.** Error rate on checkout, not CPU at 80%.
+- **Send it to a named owner.** An alert in a channel that "everyone" watches is an alert nobody owns.
+
+<Drill id="ship-break-off-switch" title="Find your off switch" time="20 min">
+
+For a project you work on, write down exactly how you would undo the last deploy: the commands, who has access and how long it takes. If you don't know, find out now, not during an incident.
+
+</Drill>
+
+<Drill id="ship-break-postmortem" title="Write a practice postmortem" time="30 min">
+
+Pick a bug you fixed recently, even a small one. Write a blameless postmortem using the template above: what happened, impact, timeline, root cause, what we'll change. Then add the test that would have caught it.
+
+</Drill>
+
+<Drill id="ship-break-alert-audit" title="Audit one alert" time="15 min">
+
+Look at an alert, monitor or CI check that fires often. Ask: is every word in it true? Does it fire on something users feel? Does it have one owner? Fix one thing about it, or delete it.
+
+</Drill>
+
+<Takeaways>
+
+- Stay calm and write down what you know.
+- Stop the damage first. The root cause can wait.
+- Post short updates early and on a rhythm.
+- Make systems fail in the safe direction, and test the dangerous one.
+- Postmortems are blameless, have owners and dates, and turn into tests.
+- Alerts must be true, about what users feel, and owned by a person.
+
+</Takeaways>

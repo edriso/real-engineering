@@ -1,0 +1,177 @@
+---
+title: Tests that prove something
+summary: A test is only useful if it can fail. Learn to write tests that catch real bugs, check what must not happen, and stay trustworthy.
+part: build
+minutes: 10
+---
+
+Many projects have hundreds of tests and still break in production. Why? Because a lot of tests don't really check anything. They run, they pass, and they would still pass if the code were broken.
+
+This lesson is about writing tests that **prove** something. The main idea is simple: **a test that can't fail is worse than no test,** because it gives you false confidence.
+
+## Watch your test fail first
+
+When you fix a bug, write a test for it. Then do this one important step: **run the test against the old, broken code and watch it fail.**
+
+If it passes on the old code too, it doesn't test your fix. It tests something else, or nothing.
+
+```bash
+# 1. Write the test on your branch. It should pass.
+npm test -- cart.test.ts
+
+# 2. Before you commit, set the fix aside (the test stays) and run it again.
+git stash push src/cart.ts
+npm test -- cart.test.ts   # This MUST fail. If it passes, the test is wrong.
+git stash pop              # bring the fix back
+```
+
+This takes two minutes and it's one of the best habits you can build. Reviewers love seeing "I confirmed this test fails without the fix."
+
+## Check the setup before the result
+
+Here's a real kind of bug. A test compared two values and checked that they were equal. It passed. But both values were `null`, because the setup was broken. `null` equals `null`, so the test was green while checking nothing.
+
+Fix it by checking the precondition first:
+
+```ts
+test('the shown price matches the charged price', () => {
+  const shown = getShownPrice(product);
+  const charged = getChargedPrice(product);
+
+  expect(shown).toBeGreaterThan(0); // the setup worked
+  expect(charged).toBe(shown);
+});
+```
+
+The same goes for any tool that reports "zero problems." Zero is only good news if the tool can find problems at all. Keep a **control case**: one example you know is bad. If the tool doesn't catch it, the "zero" means nothing.
+
+## Pick the cheapest test that would catch the bug
+
+There are different sizes of tests:
+
+| Kind | What it checks | Speed |
+| --- | --- | --- |
+| Unit | One function or component alone | Very fast |
+| Integration | Several parts working together, like code plus a database | Medium |
+| End-to-end (E2E) | The whole app, through a real browser | Slow |
+
+The rule: **write the cheapest test, at the lowest level, that could have caught this bug.** A rounding bug in a price function needs a unit test. A bug where saving a form doesn't update the database needs an integration test. A bug where the checkout button is hidden on phones needs an E2E test.
+
+Don't write an E2E test for everything. They're slow and they break for unrelated reasons.
+
+## Write clear tests: Arrange, Act, Assert
+
+A good unit test reads like a tiny story in three parts:
+
+```ts
+test('applies a 10% discount to the line total', () => {
+  // Arrange: set up the inputs
+  const line = { price: 20, qty: 3 };
+
+  // Act: do the one thing being tested
+  const total = lineTotal(line.price, line.qty, 0.1);
+
+  // Assert: check the result
+  expect(total).toBe(54);
+});
+```
+
+Good unit tests are also **FIRST**:
+
+- **Fast:** they run in milliseconds.
+- **Independent:** they don't depend on other tests or run order.
+- **Repeatable:** same result every time, on any machine.
+- **Self-validating:** they pass or fail on their own. No one has to read the output.
+- **Timely:** written close to the code, not months later.
+
+Test **behavior**, not internals. Check what the function returns or does, not which private helpers it calls. Then you can refactor freely without breaking tests.
+
+## Check what must NOT happen
+
+Many bugs aren't "the wrong thing happened." They're "something happened that shouldn't have." For example: saving one record also deleted another. Or an import added new rows but never removed old ones.
+
+These bugs don't throw errors, so normal tests miss them. To catch them, **add a sentinel**: a piece of data that should not be touched, and check that it survived.
+
+```ts
+test('updating one product leaves other products alone', async () => {
+  await db.insert({ id: 'sentinel', name: 'Do not touch' });
+
+  await updateProduct({ id: 'p1', name: 'New name' });
+
+  const sentinel = await db.find('sentinel');
+  expect(sentinel.name).toBe('Do not touch');
+});
+```
+
+## Test the failure paths
+
+Most code is tested only on the happy path. Real bugs live on the other paths. For anything that talks to a network or does work in the background, list what can go wrong and test each one:
+
+- The request fails.
+- The request takes too long (timeout).
+- The user clicks twice.
+- The user leaves the page in the middle.
+- The input is empty, too long, or in a weird format.
+
+<Callout type="tip" title="Keep a messy fixture">
+Keep one test file full of bad data: empty fields, a price like "abc", duplicate names, a very long string. Run it after every change. Your code should warn clearly and never crash.
+</Callout>
+
+## Be careful with mocks
+
+A mock replaces a real part with a fake one. Mocks are useful, but remember: **when you mock something, you are not testing it.**
+
+If you mock the "close dialog" event and check that your code reacts to it, the test passes. But it says nothing about whether pressing the Escape key in a real browser actually sends that event. Both can be true at once: a green test, and a broken feature.
+
+So:
+
+- Mock the things you don't control, like a payment provider in unit tests.
+- Avoid mocking your own code just to make a test easy.
+- Say clearly in the PR what was mocked, so nobody thinks it's fully tested.
+
+## A flaky test is worse than a red test
+
+A flaky test passes sometimes and fails sometimes, with no code change. It's dangerous because it teaches the team to ignore failures. "Oh, that one's just flaky, run it again." Then one day it's failing for a real reason, and nobody notices.
+
+When a test is flaky:
+
+1. Take it out of the main run the same day (quarantine it).
+2. Give it an owner and a ticket.
+3. Fix the real cause. It's often timing, shared state, or the current date.
+
+Never "fix" a test by changing it until it passes. Find out why it fails.
+
+## Coverage is not proof
+
+Coverage tools tell you which lines **ran** during tests. They don't tell you whether anything was **checked**. A test that calls every function and asserts nothing gives you 100% coverage and zero safety.
+
+Use coverage to find code with no tests at all. Don't use it as a score to chase.
+
+<Drill id="build-fail-first" title="Make a test fail on purpose" time="20 min">
+
+Pick a test you wrote recently. Break the code it tests on purpose (change a `+` to a `-`, or return early). Does the test fail? If not, fix the test until it does. Then undo your break.
+
+</Drill>
+
+<Drill id="build-sentinel" title="Write one 'must not happen' test" time="30 min">
+
+Find a function that updates or deletes data. Write a test that adds a sentinel record, runs the function, and checks the sentinel is unchanged.
+
+</Drill>
+
+<Drill id="build-failure-paths" title="List the failure paths" time="15 min">
+
+Pick one function that calls an API. Write down every way it can fail: error, timeout, double click, empty input. Check which ones have a test. Add a test for the most likely one.
+
+</Drill>
+
+<Takeaways>
+
+- A test must fail on the old code. Check that it does.
+- Assert your setup worked before you assert the result. Keep control cases.
+- Use the cheapest test at the lowest level that would catch the bug.
+- Write tests as Arrange, Act, Assert, and keep them FIRST.
+- Check what must not happen, and test the failure paths.
+- Mocked parts are untested parts. Flaky tests get quarantined the same day.
+
+</Takeaways>

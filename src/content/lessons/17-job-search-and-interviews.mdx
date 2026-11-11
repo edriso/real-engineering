@@ -1,0 +1,167 @@
+---
+title: Job search and interviews
+summary: Write a resume that shows results, reach out like a person, and walk into interviews ready to explain every line you wrote.
+part: career
+minutes: 10
+---
+
+A job search is a project like any other. It has a goal, steps you can improve and results you can measure. The habits from the rest of this guide work here too: be clear, show proof, and keep it short.
+
+## A resume that shows results
+
+Recruiters read fast. A well-known [eye-tracking study by TheLadders](https://www.prnewswire.com/news-releases/theladders-reveals-that-job-seekers-have-six-seconds-to-succeed-143629046.html) found that recruiters spent about six seconds on a first look at a resume. Most of that time went to names, job titles, companies, dates and education. It was a small study from 2012, so don't treat the number as exact. The lesson still holds: your resume has to make sense at a glance.
+
+### Write bullets as action, result, number
+
+Every bullet should say what you did and what changed because of it.
+
+<Compare>
+<Before label="Task list">
+
+- Worked on the search feature.
+- Responsible for code reviews.
+- Used React and Node.js.
+
+</Before>
+<After label="Results">
+
+- Rebuilt search with a database index, cutting results time from 3.2s to 0.4s.
+- Reviewed about 10 pull requests a week and caught a bug that would have double-charged customers.
+- Built the signup flow in React and Node.js; signups went up 18% in the first month.
+
+</After>
+</Compare>
+
+Not every result has a number. That's fine. "A new teammate got set up in 20 minutes instead of a day" is a result. "Removed the manual step from every release" is a result. Your [brag document](/lessons/build-proof-in-public) is where these come from.
+
+### Keep it simple
+
+- **One page** if you have under about ten years of experience.
+- **A plain layout.** Many companies use software to read resumes. Columns, icons and graphics can confuse it.
+- **Links that work:** GitHub, portfolio, LinkedIn.
+- **Skills you can talk about.** If it's on your resume, expect a question about it.
+
+### Tailor it for each job
+
+Read the job post and find the three things they care about most. Move the bullets that match those things to the top. Use their words where they're true for you: if they say "TypeScript" and you used TypeScript, say "TypeScript," not "typed JavaScript." This takes ten minutes per application and makes a big difference.
+
+## Reach out like a person
+
+Many jobs are filled through referrals. A short, honest message to the right person often works better than fifty applications sent to strangers.
+
+<Compare>
+<Before label="Generic">
+
+"Hi, I'm looking for opportunities. Please let me know if there are any openings at your company. I've attached my resume."
+
+</Before>
+<After label="Human">
+
+"Hi Alex, I saw your post about moving your checkout to server-side rendering. I did something similar on a side project and cut load time in half (write-up here). I'm applying for the frontend role on your team. Could I ask you two quick questions about the work?"
+
+</After>
+</Compare>
+
+The good version is short, shows you did some research, offers proof and asks for something small. Don't ask a stranger for a job. Ask a specific question.
+
+## Talking about your projects
+
+In almost every interview, someone will say "tell me about a project you're proud of." Prepare two or three projects and use the same shape each time:
+
+1. **The problem.** What was wrong, and who did it affect?
+2. **What you did.** Your part, not the team's. Say "I," not "we," when it was you.
+3. **The proof.** How you knew it worked, with a number if you have one.
+4. **What you'd change.** This shows you can learn, and interviewers love it.
+
+Practice saying each one out loud in about two minutes. Then stop and let them ask questions.
+
+## Coding interviews
+
+Whether it's a take-home task or a live session, the interviewer wants to see how you think, not just whether you finish.
+
+**Before you code:**
+
+- **Ask clarifying questions.** "Can the list be empty? Can there be duplicates? How big can it get?" This is what real engineers do on day one of any task. See [understand the problem](/lessons/understand-the-problem).
+- **Say your plan out loud** before you type. "I'll use a map to count each item, then sort by count."
+
+**While you code:**
+
+- **Think out loud.** Silence makes it hard for them to help you or give you credit.
+- **Start simple.** A correct slow answer beats a fast broken one. Improve it after it works.
+
+**After you code:**
+
+- **Test it yourself.** Walk through one normal case and one edge case before saying "done."
+- **Talk about trade-offs.** "This is O(n log n) because of the sort. If we needed it faster, I'd..."
+
+For take-home tasks, treat them like real work. Include a short README: how to run it, what you'd do with more time, and what you chose not to do. Add a few tests. A clean, small, tested solution beats a large unfinished one.
+
+## System design basics
+
+For more senior roles, you'll be asked to design a system, like "design a URL shortener." There's no single right answer. They're checking that you can:
+
+1. **Clarify the needs.** How many users? Read-heavy or write-heavy? What matters most?
+2. **Sketch the main parts.** Client, API, database, cache, queue.
+3. **Follow the data.** What happens, step by step, when a user does the main action?
+4. **Name the trade-offs.** "A cache makes reads fast but the data can be a few seconds old."
+5. **Find the weak spots.** What breaks first when traffic grows 10 times?
+
+## Behavioral questions
+
+"Tell me about a time you disagreed with a teammate." For these, use a simple shape, often called STAR:
+
+- **Situation:** where you were, in one sentence.
+- **Task:** what needed to happen.
+- **Action:** what you did. Most of your answer goes here.
+- **Result:** what happened, and what you learned.
+
+Prepare five stories you can adapt: a hard bug, a disagreement, a mistake you made, a time you helped someone, and a time you had to learn fast. Be honest about mistakes. "I shipped a bug, here's how I found it and what I changed so it can't happen again" is a strong answer.
+
+## Interviews in the AI era
+
+Hiring is changing. Some companies now let you use AI tools in coding rounds, and [some expect you to](https://canva.dev/blog/engineering/yes-you-can-use-ai-in-our-interviews). Others still don't allow it at all. Always ask the recruiter what the rules are before the interview.
+
+<Callout type="warn" title="Be ready to explain every line">
+When AI is allowed, the interviewer watches how you use it. Do you give it clear instructions? Do you read what it writes? Do you catch its mistakes? Accepting code you can't explain is the fastest way to fail. Practice with the habits from [work with AI agents](/lessons/work-with-ai-agents).
+</Callout>
+
+The same goes for take-home tasks and your portfolio. If you used AI, that's normal. If you can't explain how your own project works, that's a problem.
+
+## Follow up and handle rejection
+
+**After each interview**, send a short thank-you note within a day. Mention one thing you enjoyed talking about. Two or three sentences is enough.
+
+**If you're rejected**, it's fine to ask politely for feedback. Many companies won't give it, but some will. Either way, write down what went well and what didn't while it's fresh.
+
+**Keep a simple tracker.** A spreadsheet with company, role, date applied, contact, stage and next step. It keeps you from losing track, and it shows you where things go wrong. Lots of applications but no replies? Fix the resume. Lots of first calls but no offers? Practice interviews.
+
+Rejection is part of the process for everyone. Each interview is practice for the next one. Treat it like debugging: find the step that's failing, change one thing and try again.
+
+<Drill id="career-jobs-rewrite-bullets" title="Rewrite three resume bullets" time="30 min">
+
+Take three bullets from your resume. Rewrite each as action, result and, where possible, a number. Read them out loud. If a bullet could be on anyone's resume, make it more specific.
+
+</Drill>
+
+<Drill id="career-jobs-project-story" title="Record your project story" time="20 min">
+
+Pick your best project. Record yourself telling it in two minutes: problem, what you did, proof, what you'd change. Listen back once and record it again.
+
+</Drill>
+
+<Drill id="career-jobs-mock-interview" title="Do one timed problem out loud" time="45 min">
+
+Pick a medium coding problem. Set a 30-minute timer. Ask yourself the clarifying questions, say your plan out loud, code it, then test it with an edge case. Write down where you got stuck.
+
+</Drill>
+
+<Takeaways>
+
+- Write resume bullets as action, result and number.
+- Tailor your resume to each job in about ten minutes.
+- Reach out with a short, specific, human message.
+- In coding interviews: ask, plan out loud, start simple, test your code.
+- With or without AI, be ready to explain every line you submit.
+- Track your applications and treat rejection like a bug to debug.
+
+</Takeaways>

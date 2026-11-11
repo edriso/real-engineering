@@ -1,0 +1,157 @@
+---
+title: One source of truth
+summary: When the same fact lives in two places, those places will drift apart. Keep each fact in one place, and turn "keep in sync" notes into checks.
+part: build
+minutes: 8
+---
+
+Here's a bug that happens in many companies. The product page shows a price. The checkout uses a different table to charge the customer. A script keeps them in sync, and someone has to remember to run it. One day the price drops, nobody runs the script, and customers pay more than they saw.
+
+Nobody wrote "bad" code. The problem was the design: **the same fact lived in two places.** This lesson is about avoiding that.
+
+## What "one source of truth" means
+
+Every important fact (a price, a color, a limit, a rule) should live in **exactly one place**. Everything else reads from that place.
+
+When you need to change the fact, you change it once. Nothing can drift, because there's nothing to drift from.
+
+## No magic values
+
+A "magic value" is a raw number or string in the code with no name and no single home.
+
+<Compare>
+<Before label="Magic values">
+
+```ts
+if (cart.total > 75) showFreeShipping();
+// ...in another file
+const banner = 'Free shipping over $75!';
+```
+
+</Before>
+<After label="One named value">
+
+```ts
+// config.ts
+export const FREE_SHIPPING_MIN = 75;
+
+if (cart.total > FREE_SHIPPING_MIN) showFreeShipping();
+const banner = `Free shipping over $${FREE_SHIPPING_MIN}!`;
+```
+
+</After>
+</Compare>
+
+In the first version, someone changes the rule to 50 and forgets the banner. Now the site promises one thing and does another. In the second version, that can't happen.
+
+The same idea applies to design. If your project has design tokens (named colors, spacing and font sizes), use them. Don't paste `#1a73e8` into a component. When the brand color changes, you want to change it once, not search through 40 files.
+
+<Callout type="note" title="Values that differ per customer">
+If a value is different for each customer, store or environment, it doesn't belong in shared code at all. Put it in settings or config, so one codebase can serve all of them.
+</Callout>
+
+## What users see should be what the system does
+
+The price example above is the most dangerous kind of drift: the screen says one thing and the system enforces another. Watch for it with:
+
+- **Prices and totals** shown vs. charged.
+- **Limits** shown in the form vs. checked on the server.
+- **Rules** in the help text vs. in the code.
+
+The fix is to make both read the same record. The page and the checkout read the same price table. The form and the server read the same limit. If that's truly impossible, write both in a single step that either fully succeeds or fully fails.
+
+## A comment is not a guard
+
+You've probably seen comments like this:
+
+```ts
+// IMPORTANT: keep this list in sync with the server's ALLOWED_TYPES
+const allowedTypes = ['jpg', 'png', 'webp'];
+```
+
+This comment will fail. Not today, but eventually. Someone will update one list and miss the comment. People don't read every comment, and the computer doesn't read comments at all.
+
+Turn the comment into a test that fails when the two drift:
+
+```ts
+import { ALLOWED_TYPES } from '../server/uploads';
+import { allowedTypes } from '../client/uploads';
+
+test('client and server allow the same file types', () => {
+  expect([...allowedTypes].sort()).toEqual([...ALLOWED_TYPES].sort());
+});
+```
+
+Now the rule is checked every time CI runs. Even better, import the list from one place so there's only one list.
+
+## Derive, don't copy
+
+If you can calculate a value from other data, calculate it. Don't store a copy that can go stale.
+
+- Don't store `itemCount` next to the `items` array. Use `items.length`.
+- Don't store "is up to date" as a flag. Compare the actual content.
+- Don't save a total that you can add up from the lines.
+
+Here's a sneaky example. A tool checked if some data was "fresh" by comparing timestamps. But when a write changed nothing, the timestamp didn't update. So the tool kept saying the data was stale, even though it was correct. The fix was to compare the actual content, not a copy of "when it changed."
+
+Caching is sometimes needed for speed. When you do cache, know exactly what makes the cache wrong, and clear it then.
+
+## Duplication is cheaper than the wrong abstraction
+
+Now, a warning in the other direction. "One source of truth" is about **facts**. It's not a rule that every two similar-looking pieces of code must be merged.
+
+Sandi Metz put it well: **duplication is far cheaper than the wrong abstraction.** If you merge two things too early, you end up with one function full of `if` statements and flags, trying to be two things at once.
+
+A good guide is the **rule of three**:
+
+1. The first time, just write it.
+2. The second time, notice the copy, but it's okay to duplicate.
+3. The third time, you now understand the pattern. Pull it into one shared piece.
+
+A small sign that you merged too early: a component with a boolean prop that switches between two different behaviors. That's usually two components pretending to be one.
+
+## Write each fact once in your docs too
+
+This idea isn't only for code. The same is true for documentation, setup guides, and even instructions you give to AI tools.
+
+If the setup steps live in the README **and** in a wiki page, one of them is already out of date. If two docs disagree, people (and AI agents) will follow whichever one they read last.
+
+So write each fact once, and link to it from other places. When you change how something works, search the docs for the **old** behavior and update it.
+
+```bash
+# You renamed the env var. Find every doc that still says the old name.
+git grep -n "API_URL" -- '*.md'
+```
+
+<Callout type="tip" title="A simple test">
+Ask: "If this fact changes tomorrow, how many places do I need to edit?" The right answer is one.
+</Callout>
+
+<Drill id="build-magic-hunt" title="Magic value hunt" time="20 min">
+
+Open a project you work on. Search for raw numbers and hex colors (for example `git grep -nE "#[0-9a-fA-F]{6}"`). Pick one value that appears in more than one place. Give it a name in one place and make the others read from it.
+
+</Drill>
+
+<Drill id="build-comment-to-test" title="Turn a comment into a guard" time="30 min">
+
+Find a comment that says "keep in sync," "must match" or "don't forget to update." Write a test that fails when the two things drift apart. If you can't find one, look in an open-source project you like.
+
+</Drill>
+
+<Drill id="build-docs-once" title="One fact, one place" time="15 min">
+
+Pick one fact about a project, like how to run it locally. Search for every place it's written. If there's more than one, keep the best one and replace the others with a link.
+
+</Drill>
+
+<Takeaways>
+
+- Every important fact lives in one place. Everything else reads from there.
+- Name your values. Use design tokens and config instead of raw numbers and colors.
+- What users see must come from the same source as what the system enforces.
+- "Keep in sync" comments fail. Replace them with tests.
+- Calculate values instead of storing copies that can go stale.
+- Don't merge code too early. Wait for the third copy.
+
+</Takeaways>

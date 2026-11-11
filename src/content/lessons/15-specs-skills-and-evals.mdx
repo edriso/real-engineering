@@ -1,0 +1,166 @@
+---
+title: Specs, skills and evals
+summary: Write down what you want before the agent builds it, turn repeated work into tools, and measure AI output instead of hoping.
+part: ai
+minutes: 9
+---
+
+When you work with AI, the hard part moves. Typing code gets cheap. Knowing exactly what you want, and checking that you got it, gets more valuable. This lesson covers three tools for that: **specs** to say what you want, **skills and hooks** to stop repeating yourself, and **evals** to measure whether the output is good.
+
+<Quote by="Sean Grove">
+Code is a lossy projection of intent.
+</Quote>
+
+In other words, code shows what was built but not why. The why lives in your head, and the spec is where you write it down.
+
+## Research, spec, plan, implement
+
+For any change bigger than a small fix, work in four stages. Stop and check between each one.
+
+1. **Research.** Read the code and find out how things work today. What calls this? What data does it touch?
+2. **Spec.** Write what should change, for whom, and why.
+3. **Plan.** List the steps and the files you'll touch.
+4. **Implement.** Now write the code.
+
+The checks matter most early. A bad line in the plan can turn into hundreds of bad lines of code. Fixing one sentence in a plan takes a minute, and fixing the code built on it can take a day.
+
+You don't need all four stages every time. A typo fix needs no spec. A bug fix needs a way to reproduce it, then the fix. A new feature needs the full flow. Skipping a stage is fine. Not knowing which stage you skipped is not.
+
+## Keep the spec short
+
+A good spec answers five questions:
+
+- **What changes?**
+- **For whom?**
+- **Why?**
+- **What's out of scope?**
+- **When is it done?**
+
+If it runs to many pages, it's probably research you haven't finished. Finish the research, then write the short version.
+
+```md
+## Spec: weekly summary email
+
+What: Send each team owner a weekly email with their team's open tasks.
+For whom: Team owners only, not members.
+Why: Owners told us they miss tasks that go stale.
+Out of scope: Daily emails, custom schedules, members' emails.
+Done when: An owner with 3 open tasks gets one email on Monday at 9:00
+in their time zone, listing those 3 tasks.
+```
+
+### Say exactly what you mean
+
+Vague words cost you later. Say the spec says "show active users." What's "active"? Logged in today? This month? Paid? The agent will pick a meaning and build it with full confidence. You'll find out it picked wrong after it's shipped.
+
+<Compare>
+<Before label="Ambiguous">
+
+"Show the number of active users on the dashboard."
+
+</Before>
+<After label="Clear">
+
+"Show the number of users who logged in during the last 30 days, not counting test accounts. Update it once an hour."
+
+</After>
+</Compare>
+
+If you keep restarting a chat because the result is wrong in a new way each time, stop retrying in chat. That's a sign the spec is missing something. Fix the spec, then start again.
+
+## Skills for judgment, hooks for rules, scripts for the rest
+
+Many AI tools let you package your know-how. The names vary, but the idea is the same:
+
+- **Skills** are written instructions for a task that needs judgment, like "review a pull request" or "write release notes." The steps change depending on what the agent finds.
+- **Hooks** are code that runs automatically at set points, like before a command or before a commit. They run every time, so the model can't skip them or argue with them.
+- **Scripts** are regular programs for everything else: setup, data fixes, checks on a timer.
+
+How to choose:
+
+| If the task... | Use |
+| --- | --- |
+| needs to adapt to what it reads | a skill |
+| must always hold, no exceptions | a hook |
+| does the same thing every time | a script |
+
+<Callout type="tip" title="Must and never mean hook">
+If you write "must" or "never" in an instruction, ask if a hook could enforce it. A written rule like "never push to main" works most of the time. Most of the time isn't enough for a rule that matters.
+</Callout>
+
+### The third-time rule
+
+Don't write a skill on day one. Do the task by hand first. The second time, notice the steps. The third time, turn it into a skill:
+
+1. Do the task with the agent and correct it until the result is right.
+2. Ask it to write the steps down as a skill.
+3. Test the skill in a fresh session, with no memory of the first run.
+
+Keep each skill to one job. If the name needs the word "and," split it in two.
+
+## Evals: measure, don't hope
+
+AI output changes from run to run. So you can't test it by checking for one exact answer. You test it with an **eval**: a small, repeatable check of whether the output meets your rules. An eval has three parts:
+
+1. **An input,** like a real support message.
+2. **The expected behavior,** described as a rule, not an exact answer.
+3. **A scoring rule** that says pass or fail.
+
+### Check the rule, not the exact words
+
+<Compare>
+<Before label="Breaks easily">
+
+Expected output equals: "We're sorry, your refund request has been declined because..."
+
+</Before>
+<After label="Useful">
+
+Output is valid JSON with the keys `intent`, `confidence` and `escalate`. `escalate` is true when the message mentions a legal threat.
+
+</After>
+</Compare>
+
+The first check fails every time the wording changes, even when the answer is fine. The second checks what actually matters.
+
+### Mostly code, a little judge
+
+Score most things with plain code: does it parse, does it have the right keys, is it under the length limit, did it call the right tool? Code checks are fast and always give the same result. Use another model as a judge only for the things code can't check, like tone. Aim for mostly code checks, with only a few judged by a model.
+
+### A small set that runs every time
+
+You don't need thousands of test cases. Start with 20 real examples that cover your normal cases and your known edge cases. Freeze them and run them in CI on every change. Twenty cases that run every day beat two hundred in a dashboard nobody opens.
+
+Every time something goes wrong in production, add that case to the set. Each incident becomes a test you get for free. See [when things break](/lessons/when-things-break) for more on learning from incidents.
+
+### Keep a prompt log
+
+Treat prompts like experiments. When you change one, write down what you changed, why, and what happened. A plain text file is enough. After a month, you'll see which changes helped and which were guesses.
+
+<Drill id="ai-specs-write-spec" title="Write a five-line spec" time="20 min">
+
+Pick the next feature or fix you plan to build. Before you write code or open a chat, write a spec with what, for whom, why, out of scope and done when. Underline any vague word and replace it with a number or an exact rule.
+
+</Drill>
+
+<Drill id="ai-specs-first-eval" title="Build a tiny eval" time="45 min">
+
+Take one AI feature or prompt you use often. Write 10 real inputs and one rule each output must follow, like "valid JSON" or "under 50 words." Write a short script that runs all 10 and prints how many passed.
+
+</Drill>
+
+<Drill id="ai-specs-hook-or-skill" title="Sort your rules" time="15 min">
+
+Read your agent instructions file or your team's coding rules. Mark each line as skill, hook or script. Pick one "must" or "never" rule and find out how to enforce it with a hook or a CI check.
+
+</Drill>
+
+<Takeaways>
+
+- Research, spec, plan, implement. Check the plan before any code gets written.
+- A short spec answers what, for whom, why, what's out of scope and when it's done.
+- Vague words cost you later. Replace them with exact rules.
+- Skills for judgment, hooks for rules, scripts for everything else.
+- An eval checks a rule, not an exact answer. Start with 20 real cases in CI.
+
+</Takeaways>

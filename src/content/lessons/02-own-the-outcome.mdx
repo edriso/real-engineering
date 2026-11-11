@@ -1,0 +1,153 @@
+---
+title: Own the outcome
+summary: Done means it works for real users and you checked. Owning the outcome means you follow through, say what you found, and raise problems early.
+part: foundations
+minutes: 8
+---
+
+There are two kinds of engineers on most teams. The first kind closes tickets. The second kind makes sure the thing the ticket asked for actually happened. From the outside they can look the same for a while. After a few months, everyone knows who is who.
+
+This lesson is about being the second kind. It's not about working more hours. It's about caring what happens after you press merge.
+
+## Done means "working for users, and I checked"
+
+A ticket is not the goal. The goal is a change in the real world: a customer can pay, a page loads faster, a report shows the right number. Your code is only one step on the way there.
+
+So "done" has three parts:
+
+1. **The change is live** where users can reach it, not only merged.
+2. **You checked it there.** On the real site, the real device, or a copy of real data.
+3. **You told the people who care,** with the proof.
+
+<Compare>
+<Before label="Ticket closed">
+
+"Merged the fix for the broken search filter. Closing."
+
+</Before>
+<After label="Outcome owned">
+
+"Search filter fix is live. I checked it on desktop and on a phone, with three filters that used to fail. All three show results now. The old broken links in last week's email also work again."
+
+</After>
+</Compare>
+
+The second message takes a minute more. It also means nobody has to come back next week and ask "is this really fixed?"
+
+<Callout type="tip" title="A quick rule">
+If you can't say **where** you checked it, you haven't checked it.
+</Callout>
+
+## Follow through after the merge
+
+Many problems show up after release, not before. Owning the outcome means you look again:
+
+- **An hour after release**, open the page or the logs. Look for new errors.
+- **The next day**, check the number you meant to move. Did it move?
+- **If a user reported the bug**, tell them it's fixed. It costs you one message and builds a lot of trust.
+
+You don't need fancy tools for this. A note in your calendar that says "check search errors" is enough.
+
+## Separate code problems from data problems
+
+When something looks wrong, there are three usual causes: the **code**, the **data**, or the **environment** (config, network, a third-party service). Saying which one it is saves everyone a lot of time.
+
+Say you import 800 products and 20 of them don't show up. Before you dig into the import code, look at those 20. Maybe they have no image in the source file, and the system hides products without images. That's not a bug in your code. It's a data problem, and the fix is different: someone needs to add the images.
+
+A good report sounds like this:
+
+> "780 products are live. 20 stayed hidden because the source file has no image for them. That's a gap in the source data, not the import. Here's the list of 20 if someone can add images."
+
+Notice that the message is calm and exact. It gives numbers, the cause, and what to do next.
+
+## Raise problems early, and bring options
+
+Bad news gets worse with time. If you're blocked or late, say so the moment you know, not at the deadline.
+
+A good escalation has three parts:
+
+1. **What's wrong**, in one sentence.
+2. **What you already tried.**
+3. **Two or three ways forward**, with the one you'd pick.
+
+<Compare>
+<Before label="Stuck and silent">
+
+(Two days pass. Then at the end of the sprint:) "Sorry, I couldn't finish, I didn't have access to the payment settings."
+
+</Before>
+<After label="Early, with options">
+
+"I'm blocked on the payment settings: my account can't open them. I tried the staging account too, same error. Options: (1) someone with access gives me read access, (2) you export the settings and I work from the file, (3) I skip that part and finish the rest first. I'd go with 1."
+
+</After>
+</Compare>
+
+The second message makes it easy for your lead to say "yes, option 1" in five seconds. That's the goal.
+
+## Flag what you find, and give it an owner
+
+While you work, you'll notice other problems: a broken link, a strange log line, a test that fails sometimes. It's tempting to ignore them because they're "not my ticket."
+
+Don't ignore them, and don't fix everything either. Do this instead:
+
+- Write it down in the team's tracker as a short ticket.
+- Say who should own it, or ask who does.
+- Link it from your PR if it's related.
+
+A bug that everyone noticed and nobody wrote down is the worst kind. It stays forever.
+
+<Callout type="warn" title="'Out of scope' is not an answer by itself">
+If you say something is out of scope, open the follow-up ticket right then and link it. Otherwise "out of scope" reads like "I saw it and dropped it."
+</Callout>
+
+## Count before you cut
+
+Before you delete something (a feature flag, an old API field, a fallback path), find out who still uses it. Don't guess. Count.
+
+```bash
+# Who still calls the old helper?
+git grep -n "formatPriceLegacy("
+
+# How many rows still use the old status value?
+# SELECT count(*) FROM orders WHERE status = 'pending_v1';
+```
+
+A good engineer says, "I counted: zero products still depend on that fallback, so it's safe to remove." That one line turns a scary change into a boring one. Boring is good.
+
+Also remember that "nothing in this repo reads it" doesn't always mean "nothing reads it." Other services, reports or partners might. If you're not sure, ask before you delete.
+
+## Ownership is not doing everything alone
+
+Owning the outcome doesn't mean you must fix every problem yourself. Sometimes the right move is to tell the owner and step back. If you find a bug in another team's work, tell them and ask whether they want you to fix it. Respecting ownership is part of being easy to work with.
+
+<Drill id="foundations-outcome-check" title="Check something you already shipped" time="20 min">
+
+Pick one change you shipped in the last month. Open it where real users see it: the live site, the app, or the report. Does it still work? Did the number you cared about move?
+
+Write a three-line note: what you checked, where, and what you found.
+
+</Drill>
+
+<Drill id="foundations-escalation" title="Practice an early escalation" time="10 min">
+
+Think of something that's blocking you right now, even a small thing. Write the message using the pattern: what's wrong, what you tried, two or three options, and the one you'd pick. Send it if it's real.
+
+</Drill>
+
+<Drill id="foundations-count-first" title="Count before you cut" time="15 min">
+
+Find one piece of old code, config or data you think nobody uses. Search for every place it's used (`git grep`, a database query, logs). Write down the count and where it's used before you decide anything.
+
+</Drill>
+
+<Takeaways>
+
+- Done means it's live, you checked it where users are, and you told people.
+- Look again after release: an hour later, and the next day.
+- Say whether a problem is in the code, the data or the environment.
+- Raise problems early, with what you tried and a few options.
+- Write down every stray problem you find, and give it an owner.
+- Count who uses something before you remove it.
+
+</Takeaways>

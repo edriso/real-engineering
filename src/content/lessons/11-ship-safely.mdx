@@ -1,0 +1,148 @@
+---
+title: Ship safely
+summary: Merging code and releasing it to users are two different steps. Keep them apart, and you can move fast without breaking things.
+part: ship
+minutes: 9
+---
+
+Fast teams aren't the ones that never break things. They're the ones that can release a change to a few users, watch it, and turn it off in seconds if it goes wrong. Safety is what lets you move fast.
+
+This lesson is a set of habits that keep production calm.
+
+## Merge is not release
+
+Merging a PR means the code is in main. Releasing means users see it. When those are the same moment, every merge is a risk. When they're separate, you choose when users see the change.
+
+The simplest way to separate them is a **feature flag**: a setting that turns the new behavior on or off.
+
+```ts
+if (flags.newCheckout) {
+  return renderNewCheckout();
+}
+return renderOldCheckout();
+```
+
+Two rules for flags:
+
+- **New flags start off everywhere.** Merging the code changes nothing for users.
+- **Every flag has a removal date.** When the feature is fully on, delete the flag and the old path. Old flags pile up and confuse everyone.
+
+## Roll out a little at a time
+
+Once the code is merged behind a flag, turn it on for a small group first: your own team, one customer, or 5% of users. Watch errors and key numbers for a while. If it's clean, widen it. If not, turn it off. Nobody had to deploy anything.
+
+<Compare>
+<Before label="All at once">
+
+Merge on Friday, deploy to everyone, find out on Saturday that one browser can't check out.
+
+</Before>
+<After label="Gradual">
+
+Merge on Tuesday with the flag off. Turn it on for the team, then one customer on Wednesday, then everyone on Monday after a clean week.
+
+</After>
+</Compare>
+
+## Data before reader
+
+If new code reads a new field, the field has to exist and be filled **before** that code goes live. Otherwise the code reads nothing, and "nothing" can mean a price of zero, an empty page or a crash.
+
+The safe order is:
+
+1. Add the new field (nothing reads it yet).
+2. Fill it for all existing records (a "backfill"), and check the count.
+3. Deploy the code that reads it.
+4. Later, remove the old field once nothing uses it.
+
+Each step is small and can be undone on its own.
+
+## New defaults should match production
+
+When you add a new setting, its default should give the same result users see today. If the default changes behavior, every existing user changes the moment you deploy, without anyone choosing it. Check what's really saved in production, not just what the code assumes. [Small, safe changes](/lessons/small-safe-changes) has more on this.
+
+## One-way and two-way doors
+
+Some decisions are easy to undo: a button color, a copy change, a flag you can turn off. Those are **two-way doors**. Walk through them quickly.
+
+Others are hard or impossible to undo: deleting data, a database migration, changing how billing or login works, a public launch. Those are **one-way doors**. Slow down for them: write a plan, get a second reviewer, take a backup, do a dry run.
+
+<Callout type="tip" title="The one-hour rule">
+If you can't undo it within an hour, slow down. Also remember: "reversible" isn't the same as "recoverable". You can restore a deleted table from backup, but the orders placed while it was gone may be lost.
+</Callout>
+
+## Count before you delete
+
+You saw this in [Own the outcome](/lessons/own-the-outcome). Before you remove a code path, a field or a fallback, **count who still uses it.** Don't assume. "Nothing in this repo reads it" doesn't mean nothing reads it. Another service, a report, a script or a partner might.
+
+```text
+Plan: remove the old price fallback.
+Checked: 0 of 4,812 products use the fallback today (query attached).
+Safe to remove. Will keep the query in the PR for the reviewer.
+```
+
+That one count turns a risky guess into a safe change.
+
+## Never move production backwards
+
+A release should never put older code live than what's already there. This happens more than you'd think: two deploys run at once and the slower, older one finishes last. Make your deploy process refuse a version older than what's live, and make it say so loudly.
+
+## Pick your timing
+
+Don't ship risky changes late on a Friday, or right before a holiday or a big demo. Leave time to notice problems while people are around to fix them. About a full working day of watching time after a risky release is a good rule. Small, safe, flagged changes can go any time.
+
+## Guardrails beat good intentions
+
+"Remember to never push to main" works most of the time. Most of the time isn't enough. Put rules where they can't be skipped:
+
+- **Branch protection on the server**, not just a local git hook. Local hooks can be skipped or missing on a new laptop.
+- **Required CI checks** before merge.
+- **Scripts that refuse dangerous targets**, for example a test harness that won't run against production.
+
+## Keep secrets small
+
+Give each secret to the single step that needs it, not the whole pipeline. If your deploy step needs an API token, the lint step and the test step shouldn't see it. Then a problem in one step can't leak everything.
+
+## A dry run must match the real run
+
+A "dry run" mode is great for previewing what a script will do. But it's only useful if it runs the same logic as the real run. If the dry run skips a check or uses different data, it can say "all good" right before the real run breaks something. Test the dry run against the real run on a safe copy at least once.
+
+Also watch scheduled jobs. A cron job that runs `migrate --apply` will run the whole migration with nobody watching. Give automated jobs strict limits on what they're allowed to change.
+
+## Before you ship: a short list
+
+1. Is it behind a flag, off by default?
+2. Does the data exist before the code that reads it?
+3. Do the defaults match what production shows today?
+4. Is this a one-way door? If so, is there a backup and a second reviewer?
+5. Do I know how to turn it off?
+
+There's a fuller version on the [checklists page](/checklists).
+
+<Drill id="ship-safely-flag" title="Ship one change behind a flag" time="1 hour">
+
+In a side project, add a simple flag (an environment variable or a config value is fine). Put a small new feature behind it, off by default. Deploy it, turn it on, then turn it off again. Notice how calm the release felt.
+
+</Drill>
+
+<Drill id="ship-safely-count" title="Write a removal plan" time="20 min">
+
+Find one piece of code, a field or a config value you think nobody uses. Write a three-line plan like the one above: what you want to remove, what you counted and where you looked, and whether it's safe. Only then decide.
+
+</Drill>
+
+<Drill id="ship-safely-doors" title="Sort the doors" time="15 min">
+
+List the last five changes you shipped or saw shipped. Mark each one as a one-way or two-way door. For each one-way door, write down what safety step was used (or should have been).
+
+</Drill>
+
+<Takeaways>
+
+- Merge is not release. Flags start off and get removed later.
+- Roll out to a few users first, then widen after a clean period.
+- Data before reader. New defaults match production.
+- Slow down for one-way doors. If you can't undo it in an hour, be careful.
+- Count before you delete, never move production backwards, and put rules in guardrails, not memory.
+
+</Takeaways>

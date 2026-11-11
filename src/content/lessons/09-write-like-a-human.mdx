@@ -1,0 +1,154 @@
+---
+title: Write like a human
+summary: Short, plain messages that lead with the point get read and acted on. Long, vague ones get skipped.
+part: people
+minutes: 7
+---
+
+Most of your work as an engineer reaches other people as text: messages, tickets, pull requests, status updates. If people can't read it fast, they won't act on it. If it sounds like a robot wrote it, they'll stop trusting it.
+
+Good writing isn't a talent. It's a few habits you can learn in a week.
+
+## Lead with the point
+
+Put the most important thing in the first one or two sentences. Many people will only read that far. Details come after, for people who want them.
+
+<Compare>
+<Before label="Point buried">
+
+"Hi! So today I was looking into the login issue that some users reported last week. I checked the logs and talked to the support team, and after a lot of digging I found that it might be related to the session cookie. I tried a few things and I think I have a fix, but I wanted to check with you first before I deploy it, because it touches the auth code."
+
+</Before>
+<After label="Point first">
+
+"Found the login bug: session cookies expire after 1 hour instead of 24. I have a one-line fix. OK to deploy today? It touches auth, so I'd like someone to check it first."
+
+</After>
+</Compare>
+
+The second version is less than half the length and the reader knows exactly what you need from them.
+
+## Sound like a person
+
+Write the way you'd talk to a smart coworker:
+
+- **Use contractions.** "It's", "don't", "we'll". They sound natural.
+- **Use plain words.** "Use" instead of "leverage". "Full" instead of "comprehensive". "Look into" instead of "delve into".
+- **One idea, said once.** Don't repeat the same point three ways in three bullets.
+- **No headers on a short message.** A two-paragraph message doesn't need a title and sections.
+
+<Callout type="warn" title="Never paste raw AI output">
+People can tell. A message full of long bullet lists and words like "robust" and "seamless" makes readers wonder if a person wrote it at all. Then they trust it less. If AI helped you, rewrite the result in your own short words. If the long detail is really useful, put your summary first and the detail below a line like "more detail if you care".
+</Callout>
+
+## Tickets are two sentences
+
+A ticket should say **what** and **why**. That's it.
+
+```text
+Lock the "Place order" button while the order is saving.
+Double clicks are creating duplicate orders, about 30 a week.
+```
+
+Long, generated lists of requirements go stale quickly and hide what you actually meant. The person who does the work will plan the details. Your ticket just needs to carry the intent.
+
+## Status updates people can use
+
+A good daily or weekly update has three parts:
+
+```text
+Done
+- Fixed duplicate orders: the button now locks while saving. Checked on staging, 0 duplicates in 50 tries.
+
+Doing
+- Search page: about halfway, expect Thursday Nov 19.
+
+Blockers
+- None.
+```
+
+A few rules make these useful:
+
+- **Write in the reader's terms.** Your manager or client doesn't care about PR numbers. They care about what users get. "Merged #1392" means nothing to them. "Search page is about halfway, expect Thursday" does.
+- **Each "Done" line says what changed and the result.** If something broke, say what broke, why, the fix and how you checked it.
+- **Always include Blockers, even when it's "None".** That tells the reader you thought about it.
+- **Use real dates.** "Thursday Nov 19", not "next Thursday" or "last Tuesday". People read messages days later, in other time zones.
+
+## Ask for help right away
+
+Most work can wait for a reply. Blockers can't. If you're stuck, say so as soon as you know, not at the end of the day. A rough question after 15 minutes of being stuck beats a polished question after five hours.
+
+Good blocker messages include what you tried and what you need:
+
+```text
+Blocked on the deploy: I don't have access to the staging secrets.
+Tried the shared vault, my account isn't in the group.
+Can someone add me, or run the deploy for me this time?
+```
+
+And don't "ask to ask". Skip "Hey, can I ask a question?" Just ask the question.
+
+## Show, don't tell
+
+A screenshot or a short screen recording (under 30 seconds) often beats a paragraph. "The button now works on mobile" is a claim. A 10-second video of you tapping it on a real phone is proof. Clients especially love this. They can see the result without reading anything.
+
+## Describe what is, not what was wrong
+
+When you describe your change, say what the code does now. Don't frame it as fixing someone's mistake.
+
+<Compare>
+<Before label="Blames">
+
+"Finally fixed the broken date logic so it now properly handles time zones."
+
+</Before>
+<After label="Neutral">
+
+"Dates now display in the user's own time zone."
+
+</After>
+</Compare>
+
+Words like "finally", "properly" and "now correctly" sound like blame, even when you don't mean it. The person who wrote the old code might be reading.
+
+## Say thank you in public
+
+When someone helps you, thank them where others can see it, and say exactly what they did. "Thanks to Sam for spotting the retry bug in review, it would have doubled our emails" means a lot more than "thanks all". Specific public thanks builds trust, and people remember it.
+
+## A quick checklist before you hit send
+
+1. Is the main point in the first two sentences?
+2. Could I cut half the words and keep the meaning?
+3. Does it sound like me talking?
+4. Are dates written as real dates?
+5. If I need something from the reader, is it clear what and by when?
+
+For more ready-made checklists, see the [checklists page](/checklists).
+
+<Drill id="people-write-cut-half" title="Cut it in half" time="15 min">
+
+Take the last long message or email you sent. Rewrite it at half the length with the main point first. Then cut it in half again. Notice which version you'd rather receive.
+
+</Drill>
+
+<Drill id="people-write-two-sentence-ticket" title="Two-sentence tickets" time="20 min">
+
+Find three tickets or issues in any project (yours or open source). Rewrite each as two sentences: what, and why. If you can't find the "why" in the original, that's a sign the ticket wasn't clear.
+
+</Drill>
+
+<Drill id="people-write-status-update" title="Send a Done / Doing / Blockers update" time="10 min, daily">
+
+For one week, end each work day with a three-part update to yourself or your team. Use real dates and the reader's terms. On Friday, read the five updates back and see if a stranger could follow your week.
+
+</Drill>
+
+<Takeaways>
+
+- Lead with the point in one or two sentences.
+- Use plain words and contractions. Never paste raw AI output.
+- Tickets are two sentences: what and why.
+- Updates are Done, Doing, Blockers, in the reader's terms, with real dates.
+- Ask for help early. Show proof with a screenshot or short video.
+
+</Takeaways>

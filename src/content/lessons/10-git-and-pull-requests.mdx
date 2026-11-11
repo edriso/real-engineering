@@ -1,0 +1,169 @@
+---
+title: Git and pull requests
+summary: Clean commits and honest PR descriptions make your work easy to review, easy to undo and easy to trust.
+part: people
+minutes: 9
+---
+
+Your git history is a record of how you think. A clean history with clear messages tells a reviewer, a future teammate or a hiring manager that you work carefully. A messy one full of "fix", "wip" and "asdf" tells them the opposite.
+
+You don't need to know every git command. You need a few good habits.
+
+## Write commit messages for the future
+
+A commit message has a short **subject** and an optional **body**.
+
+- The subject is under about 60 characters and written as a command: "Add", "Fix", "Remove". Think of it as finishing the sentence "This commit will..."
+- The body explains **why**. The diff already shows what changed. Only you know why.
+
+<Compare>
+<Before label="Useless later">
+
+```text
+fixed stuff
+```
+
+</Before>
+<After label="Useful later">
+
+```text
+Lock the order button while saving
+
+Double clicks sent two requests and created duplicate
+orders. The button is now disabled until the request
+finishes or fails.
+```
+
+</After>
+</Compare>
+
+A year from now, someone will run `git blame` on that line and wonder why the button is disabled. The second message answers them.
+
+## Start every branch from a fresh main
+
+Old branches cause conflicts and surprises. Before you start new work, update main and branch from it:
+
+```bash
+git switch main
+git pull --ff-only
+git switch -c fix/duplicate-orders
+```
+
+`--ff-only` refuses to create a surprise merge commit if your local main has drifted. If it fails, stop and look before you go on.
+
+## One concern per branch
+
+A branch should do one thing. If you fix a bug and also reformat ten files and also update a dependency, nobody can review the bug fix properly, and nobody can undo one part without the others. Found something else that needs fixing? Write it down and do it in a separate branch.
+
+## Rebase or merge?
+
+When main moves ahead while you work, you need to bring those changes into your branch. There are two ways:
+
+- **Merge** (`git merge main`) adds a merge commit. Safe and simple. History shows exactly what happened.
+- **Rebase** (`git rebase main`) replays your commits on top of the new main. History is cleaner, but it rewrites your commits.
+
+A simple rule: **rebase your own branch before others are using it, and merge once others are.** Never rebase a branch someone else has pulled, unless you've agreed on it. If you do rebase a pushed branch, use `git push --force-with-lease`, which refuses to overwrite work you haven't seen.
+
+## Worktrees for parallel work
+
+Need to review a teammate's PR while you're in the middle of your own work? Don't stash and switch. Use a worktree, which gives you a second folder on another branch:
+
+```bash
+git fetch origin
+git worktree add ../review-search origin/feature/search
+# review, run tests, then clean up:
+git worktree remove ../review-search
+```
+
+This is also how you run AI agents in parallel safely: give each one its own worktree, so they can't overwrite each other's files.
+
+## Sign your commits and set your identity per repo
+
+If you use one email for work and another for personal projects, set the identity in each repo so you don't leak or mix them:
+
+```bash
+git config user.name "Your Name"
+git config user.email "you@example.com"
+```
+
+Signed commits prove the commit really came from you. GitHub shows them as "Verified". Many teams require it. Signing with your SSH key is the easiest setup:
+
+```bash
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+git config --global commit.gpgsign true
+```
+
+Then add the same key on GitHub as a **signing key** (not only an authentication key).
+
+## The pull request description is evidence
+
+A PR description isn't a formality. It's your proof that the change works. Use five parts:
+
+```markdown
+## What changed
+The "Place order" button is disabled while the order is saving.
+
+## Why
+Double clicks created duplicate orders (about 30 a week).
+
+## How to check
+1. Open any product, add it to the cart.
+2. Double click "Place order" quickly.
+3. Only one order appears in the admin.
+
+## What I ran
+- Unit tests: `npm test` (new test fails on main, passes here)
+- Manual: 20 double clicks on staging, 20 single orders
+
+## What I didn't cover
+- The mobile app has its own button. Opened an issue for it: #(link)
+```
+
+The last section is the most important one. It's the one part nobody can fake, and it shows the reviewer where to look hardest. Reviewers trust authors who are honest about gaps.
+
+<Callout type="tip" title="Evidence needs a version">
+"Tests pass" means nothing on its own. Which tests, on which commit? A screenshot from an older version of the code is just a rumor with a picture attached. Make your evidence match the code you're asking someone to merge.
+</Callout>
+
+## Refs vs Closes: be honest
+
+On GitHub, writing `Closes #123` in a PR closes the issue when the PR merges. Only use it when the PR fully solves the issue. If the PR does part of the work, write `Refs #123` and say what's left.
+
+Every claim in your PR, including the title, test names and code comments, should be true of the diff. If the title says "Fix checkout on mobile" and you only tested on desktop, the title is wrong.
+
+## "Out of scope" needs a link
+
+It's good to keep PRs focused. But "this is out of scope" with nothing else reads like you're ignoring a bug. When you find a real problem you won't fix now, open an issue right away and link it in the PR. Now it's tracked, not dropped.
+
+## You are the author
+
+AI might help you write code. You still own it. You review it, you test it, you answer questions about it, and you fix it if it breaks. That's why your commits should carry your name alone. Don't add AI "co-author" lines or "generated by" footers to commits or PRs. They don't help the reader, and they blur who is responsible. See [Work with AI agents](/lessons/work-with-ai-agents) for more on this.
+
+<Drill id="people-git-rewrite-messages" title="Rewrite five commit messages" time="20 min">
+
+Run `git log --oneline -n 20` on a project of yours. Pick five weak messages. For each, write what a good subject and a one-line "why" would have been. Use this style for every commit you make this week.
+
+</Drill>
+
+<Drill id="people-git-five-field-pr" title="Use the five-field PR template" time="15 min per PR">
+
+For your next pull request, use the five parts: what changed, why, how to check, what I ran, what I didn't cover. Make sure every claim is true of the diff. Save the template somewhere you can paste it from. On GitHub you can add it as `.github/pull_request_template.md`.
+
+</Drill>
+
+<Drill id="people-git-worktree" title="Try a worktree" time="15 min">
+
+In any repo, create a worktree for a different branch with `git worktree add`. Run the tests there while your main folder stays untouched. Remove it when you're done. Now you have a safe way to review and to run parallel agents.
+
+</Drill>
+
+<Takeaways>
+
+- Commit subjects say what, in the imperative. Bodies say why.
+- Branch from a fresh main, and keep one concern per branch.
+- Rebase your own unshared work, merge shared work, and use `--force-with-lease`.
+- PR descriptions are evidence: what, why, how to check, what I ran, what I didn't cover.
+- Be honest: `Refs` for partial work, linked issues for anything out of scope, your name alone on what you ship.
+
+</Takeaways>

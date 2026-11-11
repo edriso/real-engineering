@@ -1,0 +1,134 @@
+---
+title: Code review that helps
+summary: Review exists so a second person understands the change. Make your PRs easy to review, and make your reviews short and useful.
+part: people
+minutes: 8
+---
+
+Most people think code review is about catching bugs. It does catch some. But the main thing review gives a team is simpler: **after a review, two people understand the change instead of one.** If the author leaves, gets sick or goes on holiday, someone else can still fix that code.
+
+That changes how you should act on both sides. As an author, your job is to make the change easy to understand. As a reviewer, your job is to understand it, and to stop only the things that really matter.
+
+<Callout type="warn" title="Don't fake the review">
+If you approve without reading, or the author pastes AI output they never read, the review didn't happen. It just looks like it did. That's worse than no review, because everyone thinks the code was checked.
+</Callout>
+
+## When you're the author
+
+**Review your own diff first.** Before you ask anyone, read the whole diff yourself, line by line, as if a stranger wrote it. You'll find debug logs, a renamed variable you forgot, a comment that no longer matches the code. Every one you catch is one your reviewer doesn't have to.
+
+**Keep it small.** Many teams find reviews work best when a change is around 200 to 400 lines. At 20 lines they ask "is this correct?" At 2,000 lines they can only ask "do I trust this person?" If your change is big, split it into pieces that each make sense alone and can be rolled back alone.
+
+**Tell the reviewer where to start.** If you have several PRs that depend on each other (a "stack"), give them an order:
+
+```text
+Review order:
+1. Add the new price field (this one first, it's just the schema)
+2. Read the price in the cart (stacked on 1)
+3. Remove the old price lookup (review this one last)
+```
+
+**You must be able to explain your own diff.** Here's a simple test: can you answer any question about your change without asking the AI that helped write it? If not, you're not the author yet. You're just passing messages between a model and your reviewer, and that wastes everyone's time.
+
+## When you're the reviewer
+
+**Block only real problems.** A real problem is one of these:
+
+- A bug, or a case the code doesn't handle
+- A requirement the change misses
+- A security issue
+- Something that can't be undone, like deleting data
+
+Everything else is a preference. Preferences are fine to mention, but they shouldn't block the merge.
+
+**Label preferences clearly.** Start them with `Nit:` so the author knows they can skip them. If you'd really like something changed but it's not a bug, open a follow-up issue or offer a small PR yourself. If it's a pattern you want everywhere, make it a lint rule or a written team rule, not a comment on one PR.
+
+**Write one short comment, not twenty.** Put your main points in one comment with a few bullets. Long review threads with many small comments tire people out and hide the one thing that matters.
+
+**Make the first line count.** Say where the problem is and how it happens. A vague first line gets ignored or argued with.
+
+<Compare>
+<Before label="Vague">
+
+"Hmm, not sure about this approach. Have you thought about edge cases? Might cause issues."
+
+</Before>
+<After label="Clear">
+
+"`saveOrder()` in `cart.ts`: if the request times out, the retry sends a second order. Can we lock the button until the first call returns?
+
+- Nit: `tmp` could be `pendingOrder`.
+- Rest looks good to me."
+
+</After>
+</Compare>
+
+The second comment names the file, the function, the exact case and a possible fix. The author can act on it in two minutes.
+
+**Approve when it makes the code better, not when it's perfect.** Perfect code doesn't exist. If the change improves things and has no real problems, approve it. Waiting for perfection just slows the team down.
+
+**Reply fast.** Slow reviews are what make review feel hostile. A PR that waits three days goes stale, conflicts with other work and loses the author's focus. Try to give a first response the same day, even if it's "I'll look properly tomorrow morning."
+
+## When you get feedback
+
+**Check each point before you act on it.** Reviewers can be wrong too, and AI review tools are wrong often. Much of what AI reviewers flag isn't worth changing. For each finding, check it against the code. Does the bug really happen? Is the case really possible with real data?
+
+**Say plainly what you didn't change, and why.** Rejecting a finding is fine. Hiding it isn't.
+
+**After you push fixes, reply with what changed and what you checked.** Keep it short:
+
+```text
+Pushed fixes:
+- Button now locks while saving. Double clicked 20 times on staging, one order each time.
+- Didn't rename tmp: it's removed in the next PR in the stack.
+- The null check you flagged can't happen: the field is required in the schema (see line 42).
+```
+
+That reply lets the reviewer approve without reading the whole diff again.
+
+## Closing a PR is OK
+
+Sometimes the right result of a review is to close the PR. Maybe the problem is already solved somewhere else, or the approach turned out to be wrong. That's not a failure. Close it with one line saying why, so the next person who finds it understands.
+
+```text
+Closing: the new cache layer already handles this. Moved the one useful test to the other PR.
+```
+
+## What good review culture looks like
+
+Teams with good review culture have a few things in common:
+
+- PRs are small and arrive with a clear description (see [Git and pull requests](/lessons/git-and-pull-requests)).
+- Formatting, linting and type checks run in CI, so humans never argue about spaces.
+- Reviews are short and kind, and they block only real problems.
+- People thank each other in public for good catches.
+
+You can build this culture from any seat. Start by being the reviewer you'd want: fast, clear and fair.
+
+<Drill id="people-review-self-first" title="Review yourself first" time="20 min">
+
+Before your next PR, read your full diff in the PR view, not in your editor. Write down everything you'd point out if someone else wrote it. Fix those things before you request a review. Count how many you found.
+
+</Drill>
+
+<Drill id="people-review-one-comment" title="One comment, real problems only" time="30 min">
+
+Review one open PR (at work, or an open source project). Write a single comment: the real problems first, each with file and mechanism, then any `Nit:` lines. Before you post, delete every point that's just your taste and isn't labeled as a nit.
+
+</Drill>
+
+<Drill id="people-review-explain-diff" title="Explain your diff without help" time="10 min">
+
+Take your last PR. Without opening any AI tool, explain out loud (or in writing) what every changed file does and why. Anything you can't explain is something to go and learn now.
+
+</Drill>
+
+<Takeaways>
+
+- Review exists so a second person understands the change.
+- Review your own diff first, keep PRs small, and tell reviewers where to start.
+- As a reviewer, block only real problems. Label the rest `Nit:` or move it to a follow-up.
+- One short comment. First line says where and how it breaks.
+- Check feedback before acting on it, and reply with what changed and what you checked.
+
+</Takeaways>
