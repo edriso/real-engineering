@@ -47,6 +47,10 @@ Every push to `main` runs the checks and deploys to GitHub Pages. Pull requests 
 
 Fixes and better examples are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the [writing guide](docs/writing-guide.md). Every lesson page has a "Suggest an edit" link.
 
+## Credits
+
+The name and the idea behind this guide come from Sara and Tom. Sara shared a quick screen recording of a real-time video test, with no slides and no report, just proof you could watch. Tom replied: "This is what real engineering looks like." Lesson 1 opens with that moment.
+
 ## License
 
 Code is [MIT](LICENSE). Lesson text is [CC BY 4.0](LICENSE-CONTENT.md): share and adapt it, with credit.
